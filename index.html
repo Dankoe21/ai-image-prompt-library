@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AI Image Prompt Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;700&family=JetBrains+Mono:wght@700&family=Oranienbaum&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FBF3E4;--bg2:#F3E9D4;--card:#FFFFFF;--modal:#FFFFFF;--inp:#FBF3E4;
+  --bdr:#E7DFCC;--bdr-2:#CFC8BB;--bdr-a:rgba(225,119,13,.4);
+  --a1:#E1770D;--a2:#EC8B2B;--a-focus:#E1770D;--a3:#A8641F;
+  --a1-rgb:225,119,13;--a3-rgb:168,100,31;--ink-rgb:31,28,25;
+  --ink:#1F1C19;--ink-2:#54493C;--ink-3:#867A65;--ink-4:#B0A891;--success:#3E7A4C;
+  --sans:'Geist',ui-sans-serif,sans-serif;
+  --display:'Oranienbaum','Geist',serif;
+  --mono:'Geist Mono',ui-monospace,monospace
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:500;-webkit-font-smoothing:antialiased;min-height:100vh;letter-spacing:-.005em;scrollbar-color:var(--bdr-2) var(--bg);scrollbar-width:thin}
+::-webkit-scrollbar{width:10px;background:var(--bg)}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bdr-2);border-radius:0;border:2px solid var(--bg);min-height:48px}
+::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
+::-webkit-scrollbar-corner{background:var(--bg)}
+/* Right panel — always-visible scrollbar (non-overlay) */
+.mr::-webkit-scrollbar{width:10px;background:var(--bg2)}
+.mr::-webkit-scrollbar-track{background:var(--bg2)}
+.mr::-webkit-scrollbar-thumb{background:var(--bdr-2);min-height:48px;border:2px solid var(--bg2);border-radius:0}
+.mr::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
+.mr::-webkit-scrollbar-corner{background:var(--bg2)}
+.mr{scrollbar-width:thin;scrollbar-color:var(--bdr-2) var(--bg2)}
+
+/* layout */
+.app{display:flex;min-height:100vh}
+
+/* category ribbon */
+.cc{flex-shrink:0;padding:8px 16px;border-radius:999px;font-size:11px;font-weight:600;border:none;cursor:pointer;transition:background .18s,color .18s;white-space:nowrap;font-family:var(--sans);background:transparent;letter-spacing:.02em;position:relative;color:var(--ink-2)}
+.cc:hover{background:var(--cc,#E1770D);color:#fff}
+.cc.active{background:var(--cc,#E1770D);color:#fff;font-weight:700}
+
+/* main */
+#main{flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:30;background:rgba(244,240,229,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);min-height:56px;display:flex;align-items:center}
+.topbar-inner{display:flex;align-items:center;justify-content:flex-end;gap:12px;width:100%;max-width:1280px;margin:0 auto;padding:0 22px}
+.tb-r{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hp-wrap{position:relative;margin-left:auto;flex-shrink:0}
+.hp-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;background:transparent;border:none;border-radius:999px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;font-family:var(--sans);transition:background .15s,color .15s}
+.hp-btn:hover,.hp-btn.open{background:var(--a1);color:#fff}
+.hp-btn svg{width:14px;height:14px;flex-shrink:0}
+.hp-btn .hp-chev{width:11px;height:11px;color:var(--ink-4);transition:transform .15s,color .15s;margin-left:1px}
+.hp-btn:hover .hp-chev,.hp-btn.open .hp-chev{color:#fff}
+.hp-btn.open .hp-chev{transform:rotate(180deg)}
+.hp-panel{display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;max-height:60vh;overflow-y:auto;background:var(--card);border:1px solid var(--bdr);border-radius:0;box-shadow:0 20px 50px rgba(38,33,27,.16);z-index:40;padding:8px}
+.hp-group-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);padding:12px 10px 5px;font-family:var(--sans)}
+.hp-panel.open{display:block}
+.hp-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;border-radius:0;cursor:pointer;transition:background .12s}
+.hp-cam{width:13px;height:13px;flex-shrink:0;color:var(--ink-4)}
+.hp-item:hover{background:var(--bg2)}
+.hp-item .hp-title{font-size:12.5px;font-weight:600;color:var(--ink)}
+.hp-item .hp-cat{font-size:10px;color:var(--ink-4)}
+.catbar{position:sticky;top:56px;z-index:29;background:rgba(244,240,229,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr);}
+.catbar-inner{max-width:1280px;margin:0 auto;padding:10px 22px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cc-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tb-srch{position:relative;display:flex;align-items:center}
+.tb-srch svg{position:absolute;left:11px;width:14px;height:14px;color:var(--ink-4);pointer-events:none}
+.tb-srch input{padding:7px 12px 7px 32px;background:var(--card);border:1px solid var(--bdr);border-radius:999px;font-size:12px;color:var(--ink);font-family:var(--sans);outline:none;transition:border-color .15s;width:140px;font-weight:500}
+.tb-srch input::placeholder{color:var(--ink-4)}
+.tb-srch input:focus{border-color:var(--a1);width:230px;transition:width .2s,border-color .15s}
+
+/* content */
+.content{flex:1;padding:22px;max-width:1280px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:34px}
+
+/* hero */
+.hero{position:relative;overflow:hidden;border-radius:0;border:1px solid var(--bdr);background:var(--card);padding:36px 32px}
+.hg1,.hg2{display:none}
+.hero-in{position:relative;z-index:1;display:flex;flex-direction:column;gap:14px}
+.h-title{font-family:var(--display);font-size:clamp(28px,4vw,42px);font-weight:400;letter-spacing:-.005em;margin-top:0;color:var(--ink)}
+.h-desc{font-size:14px;color:var(--ink-2);line-height:1.65;max-width:600px;font-weight:400}
+.h-desc strong{color:var(--ink);font-weight:600}
+
+/* cat section */
+.cat-sec{display:flex;flex-direction:column;gap:16px}
+.cat-hdr{display:flex;align-items:center;gap:12px}
+.cat-lbl{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-family:var(--sans)}
+.cat-div{flex:1;height:1px;background:var(--bdr)}
+
+/* grid */
+.grid{display:grid;grid-template-columns:1fr;gap:26px;align-items:start}
+
+/* card */
+.card{position:relative;cursor:pointer;overflow:hidden;border-radius:0;border:1px solid var(--bdr);background:var(--card);padding:20px;transition:all .3s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column;justify-content:space-between;gap:16px}
+.card:hover{border-color:var(--ink-3);box-shadow:0 16px 40px rgba(38,33,27,.1)}
+@media(prefers-reduced-motion:no-preference){.card:hover{transform:translateY(-3px)}}
+.cg{display:none}
+.c-cat{display:inline-flex;align-items:center;padding:4px 10px;border-radius:0;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#fff;width:fit-content;font-family:var(--sans)}
+.c-title{font-family:var(--display);font-size:21px;font-weight:400;color:var(--ink);line-height:1.3;transition:color .2s;margin-top:10px;letter-spacing:-.005em}
+.card:hover .c-title{color:var(--a1)}
+.c-desc{font-size:13px;color:var(--ink-2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:7px;font-weight:400}
+.wf-tags{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:13px}
+.wt{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:0;font-size:10px;font-family:var(--mono);font-weight:700;letter-spacing:.06em;border:1px solid;transition:filter .15s}
+.wt:hover{filter:brightness(.92)}
+.wt svg{width:13px;height:13px}
+.wt-i{color:#3E6E8C;background:rgba(62,110,140,.08);border-color:rgba(62,110,140,.3)}
+.wt-e{color:#9C6A3E;background:rgba(156,106,62,.08);border-color:rgba(156,106,62,.3)}
+.wt-v{color:#3E8368;background:rgba(62,131,104,.08);border-color:rgba(62,131,104,.3)}
+/* card image strip — one large landscape image per row */
+.card-img{width:calc(100% + 40px);margin:-20px -20px 0 -20px;aspect-ratio:2.1/1;overflow:hidden;border-radius:0;position:relative;flex-shrink:0;background:var(--bg2)}
+.card-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.card:hover .card-img img{transform:scale(1.025)}
+
+.c-date{font-family:var(--sans);color:var(--ink-4);font-size:11px}
+
+/* empty */
+.empty{padding:70px 22px;text-align:center;border-radius:0;background:var(--card);border:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty svg{width:38px;height:38px;color:var(--ink-4)}
+.empty h4{font-size:15px;font-weight:600;color:var(--ink);font-family:var(--sans)}
+.empty p{font-size:12px;color:var(--ink-3);max-width:340px}
+.rst-btn{margin-top:8px;font-size:12px;font-weight:600;color:var(--a1);background:transparent;border:1px solid var(--a1);padding:8px 16px;border-radius:0;cursor:pointer;transition:all .15s;font-family:var(--sans)}
+.rst-btn:hover{background:var(--a1);color:var(--ink)}
+
+/* modal */
+#mbk{display:none;position:fixed;inset:0;z-index:50;background:rgba(38,33,27,.55);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:14px}
+#mbk.on{display:flex}
+.modal{position:relative;width:100%;max-width:880px;background:var(--modal);border-radius:0;border:1px solid var(--bdr);box-shadow:0 40px 100px rgba(38,33,27,.3);overflow:hidden}
+@media(prefers-reduced-motion:no-preference){.modal{animation:zi .22s cubic-bezier(.16,1,.3,1)}}
+@keyframes zi{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.m-cls{position:absolute;top:16px;right:16px;z-index:10;width:34px;height:34px;border-radius:0;background:transparent;border:none;cursor:pointer;color:var(--ink-3);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.m-cls:hover{background:var(--bg2);color:var(--ink)}
+.m-cls svg{width:18px;height:18px}
+.mbody{display:grid;grid-template-columns:1fr;max-height:88vh;overflow-y:auto}
+.ml{padding:32px;display:flex;flex-direction:column;gap:24px}
+.mr{padding:32px;background:var(--bg2);border-top:1px solid var(--bdr);display:flex;flex-direction:column;gap:22px}
+.m-ctag{display:inline-flex;align-items:center;padding:4px 12px;border-radius:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#fff;width:fit-content;font-family:var(--sans)}
+.m-title{font-family:var(--display);font-size:clamp(24px,4vw,30px);font-weight:400;color:var(--ink);line-height:1.25;letter-spacing:-.005em;margin-top:10px}
+.m-desc{font-size:13.5px;color:var(--ink-2);line-height:1.65;font-weight:400}
+.vbox{padding:16px;border-radius:0;background:var(--card);border:1px solid var(--bdr);margin-top:22px}
+.blbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:12px;display:flex;align-items:center;gap:5px;font-family:var(--sans)}
+.blbl svg{width:13px;height:13px;color:var(--a1)}
+.vrow{display:flex;flex-direction:column;gap:5px}
+.vrow+.vrow{margin-top:9px}
+.vlbl{font-size:11px;font-family:var(--mono);font-weight:600;color:var(--a3)}
+.vi{width:100%;padding:7px 12px;background:var(--inp);border:1px solid var(--bdr);border-radius:0;font-size:12px;color:var(--ink);font-family:'JetBrains Mono',monospace;font-weight:700;outline:none;transition:border-color .15s}
+.vi:hover{border-color:var(--bdr-2)}
+.vi:focus{border-color:var(--a1)}
+.vi::placeholder{color:var(--ink-4)}
+.prev-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:8px;display:flex;align-items:center;gap:5px;font-family:var(--sans)}
+.prev-lbl svg{width:13px;height:13px;color:var(--a1)}
+.prev{padding:16px;border-radius:0;background:var(--inp);border:1px solid var(--bdr);font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--ink);line-height:1.75;max-height:210px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+.vtok{display:inline;padding:1px 5px;margin:0 2px;border-radius:0;font-family:var(--mono);font-size:11px;font-weight:600;transition:all .15s}
+.vtok.e{color:var(--a3);background:rgba(var(--a3-rgb),.15);border:1px solid rgba(var(--a3-rgb),.3)}
+.vtok.f{color:#2E6E42;background:rgba(62,122,76,.15);border:1px solid rgba(62,122,76,.35);font-weight:700}
+.m-acts{padding-top:16px;border-top:1px solid var(--bdr);margin-top:4px}
+.cpbtn{width:100%;padding:12px;border-radius:0;font-size:12px;font-weight:700;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;border:none;transition:all .25s;letter-spacing:.02em}
+.cpbtn.idle{background:var(--ink);color:var(--card)}
+.cpbtn.idle:hover{background:var(--a1);color:var(--ink);transform:translateY(-2px)}
+.cpbtn.done{background:var(--success);color:#fff}
+.cpbtn svg{width:15px;height:15px}
+.slbl,.plbl,.srlbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:12px;font-family:var(--sans)}
+.steps{list-style:none;display:flex;flex-direction:column;gap:11px}
+.si{display:flex;gap:10px;font-size:12.5px;color:var(--ink-2);line-height:1.6;font-weight:400}
+.sn{flex-shrink:0;width:19px;height:19px;border-radius:50%;background:var(--card);color:var(--a1);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid var(--bdr-2)}
+.plist{display:flex;flex-direction:column;gap:7px}
+.pi{padding:9px 11px;border-radius:0;background:var(--card);border:1px solid var(--bdr);cursor:pointer;transition:background .15s}
+.pi:hover{background:var(--bg)}
+.pt{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.pn{font-size:12px;font-weight:600;color:var(--a3)}
+.pu{font-size:10px;color:var(--ink-4);font-family:var(--mono);display:flex;align-items:center;gap:3px}
+.pu svg{width:11px;height:11px;color:var(--ink-4)}
+.ptx{font-size:11px;color:var(--ink-4);font-style:italic}
+/* workflow tabs */
+.tab-bar{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}
+.tab-btn{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:0;font-size:12px;font-weight:600;font-family:var(--sans);border:1px solid var(--bdr);cursor:pointer;background:transparent;color:var(--ink-3);transition:all .15s;letter-spacing:0}
+.tab-btn:hover{color:var(--ink);border-color:var(--bdr-2)}
+.tab-active{color:var(--ink)}
+.tab-num{width:18px;height:18px;border-radius:50%;background:rgba(var(--ink-rgb),.08);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink)}
+.tab-active .tab-num{color:#fff}
+.tab-hint{font-size:11.5px;color:var(--ink-3);font-weight:500;padding:5px 2px 10px;font-style:italic}
+.prev-wrap{display:flex;flex-direction:column;gap:7px}
+/* toast */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(30px);padding:10px 20px;border-radius:999px;background:var(--ink);color:var(--card);font-size:12px;font-weight:700;box-shadow:0 12px 30px rgba(38,33,27,.25);z-index:60;pointer-events:none;transition:all .25s cubic-bezier(.16,1,.3,1);opacity:0;display:flex;align-items:center;gap:7px;white-space:nowrap}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast svg{width:15px;height:15px;color:var(--card)}
+
+/* responsive */
+@media(min-width:700px){
+  .content{padding:30px}
+  .hero-in{flex-direction:row;align-items:center;justify-content:space-between}
+  .vrow{flex-direction:row;align-items:center}
+  .vlbl{min-width:130px;flex-shrink:0}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+<div id="main">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="tb-r">
+        <div class="tb-srch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="sq" placeholder="Search…" oninput="doSearch(this.value)"/>
+        </div>
+      </div>
+    </div>
+  </header>
+  <nav class="catbar"><div class="catbar-inner">
+    <div class="cc-row" id="tb-cats"></div>
+    <div class="hp-wrap">
+      <button class="hp-btn" id="hpBtn" onclick="toggleHP(event)">
+        People Prompts
+        <svg class="hp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="hp-panel" id="hpPanel"></div>
+    </div>
+  </div></nav>
+  <main class="content">
+    <div class="hero">
+      <div class="hg1"></div><div class="hg2"></div>
+      <div class="hero-in">
+        <div>
+          <h2 class="h-title">AI Image Prompt Library</h2>
+          <p class="h-desc" style="margin-top:7px">Browse a collection of AI image and video prompts organized by style, technique, and subject. Preview examples, customize each template, and use it with today's leading AI image models.</p>
+        </div>
+
+      </div>
+    </div>
+    <div id="sec-hdr" style="display:none"></div>
+    <div id="plist"></div>
+  </main>
+</div>
+</div>
+
+<div id="mbk" onclick="bkClick(event)">
+  <div class="modal" id="modal">
+    <button class="m-cls" onclick="closeM()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="mbody"><div class="ml" id="ml"></div><div class="mr" id="mr"></div></div>
+  </div>
+</div>
+
+<div id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span id="toast-txt"></span></div>
+
+<script>
+
+const CATEGORIES = [
+  { id: "miniature",  name: "Miniature Worlds & Dioramas" },
+  { id: "city",       name: "City & Urban Scenes" },
+  { id: "art",        name: "Art, Maps & Infographics" },
+  { id: "brand",      name: "Brand & Product" },
+  { id: "food",       name: "Food & Culinary" },
+  { id: "scifi",      name: "Sci-Fi & Surreal" },
+];
+// Folded into the "People Prompts" dropdown rather than the main ribbon —
+// kept here only so getCat() can still resolve a name for these cards.
+const PERSON_CAT = { id: "people", name: "People Prompts" };
+// Thematic groupings for the People Prompts dropdown (by card id)
+const PEOPLE_SUBCATS = [
+  { label: "Portrait Transformations", ids: ["mar21-i","apr09-e","apr09-f","apr25-6","may14-9","may16-4"] },
+  { label: "Fashion & Style",          ids: ["apr25-5","may16-1","mar14-2"] },
+  { label: "Career & Growth",          ids: ["mar21-j","apr25-7","may14-5","may16-7","may14-8"] },
+  { label: "Travel & Landmarks",       ids: ["apr09-g","apr09-a"] },
+  { label: "Brand & Editorial",        ids: ["feb28-f","mar14-7","apr09-d","mar28-d"] },
+  { label: "Pop Culture Portraits",    ids: ["apr09-c"] },
+];
+
+const GUIDES = [
+  { id: "feb28", title: "Nano Banana Pro — Complete Prompt Guide",            date: "2026-02-28", url: "https://www.youtube.com/watch?v=DIsCDGJDuGo" },
+  { id: "mar14", title: "Nano Banana 2 — Wild Prompts",                      date: "2026-03-14", url: "https://www.youtube.com/watch?v=yFX7H6Il4Q0" },
+  { id: "mar21", title: "Nano Banana 2 is INSANE!",                          date: "2026-03-21", url: "https://www.youtube.com/watch?v=2f2qw6dM-2A" },
+  { id: "mar28", title: "Nano Banana 2 — Next-Level Prompts",                date: "2026-03-28", url: "https://www.youtube.com/watch?v=IiqWrisLmzw" },
+  { id: "apr09", title: "Nano Banana 2 is CRAZY!",                           date: "2026-04-09", url: "https://www.youtube.com/watch?v=CgFrYiWqi0Q" },
+  { id: "apr25", title: "Wild Nano Banana 2 Image Prompts",                  date: "2026-04-25", url: "https://www.youtube.com/watch?v=fzEjUKIGQNQ" },
+  { id: "may14", title: "Mind Blowing Nano Banana 2 Prompts",                date: "2026-05-14", url: "https://www.youtube.com/watch?v=TtRAOK5JZm0" },
+  { id: "may16", title: "GPT Image 2 vs Nano Banana 2",                      date: "2026-05-16", url: "https://www.youtube.com/watch?v=o832MMJfQBs" }
+];
+
+const PROMPTS = [
+  {
+    id: "feb28-a",
+    guide: "feb28",
+    category: "miniature",
+    title: "Cartographic Diorama",
+    description: "Raise a 3D miniature city out of a flat topographic map at its real coordinates.",
+    imageUrl: "images/cartographic-diorama-barcelona.webp",
+    variables: ["[COUNTRY]", "[CITY]"],
+    promptText: `An authentic, intricate topographical chart observed from a top-down perspective, faithfully depicting the territory surrounding [COUNTRY]. Emerging from the map is a small-scale 3D model of [CITY], exactly situated at its genuine coordinates. This miniature showcases legendary buildings, organic terrain features, and cultural symbols integrated smoothly into the map's plane. Hyper-detailed finishes, delicate surface qualities, and bokeh effects. Gentle professional studio illumination with faint shadowing, artistic framing, high-end close-up photographic aesthetic. 4:3 aspect ratio, profound precision, lifelike proportions.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Cartographic Diorama prompt.", "Replace [COUNTRY] and [CITY] with your chosen pair.", "Click Generate."],
+    examples: [
+      { label: "United Kingdom / London", text: "3D model of London rising from an accurate UK topographical chart" },
+      { label: "Spain / Barcelona", text: "Barcelona landmarks emerging from the Spanish coastal map" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "feb28-b",
+    guide: "feb28",
+    category: "miniature",
+    title: "Macro Metropolis",
+    description: "Drop from the map into a street-level view of the miniature city, animated as a single dive.",
+    imageUrl: "images/macro-metropolis-sagrada-familia.webp",
+    variables: ["[Main Landmark]"],
+    promptText: `Seamlessly transition the camera into a street-level view of the miniature city. The perspective is now immersive, featuring iconic landmarks like the [Main Landmark] towering nearby with weathered textures and intricate architectural detail. The foreground reveals tiny, naturally moving pedestrians navigating cobblestone paths and local street features. Warm, low-angle sunlight filters between structures, creating realistic shadows and highlighting vibrant banners or local foliage. The environment must perfectly mirror the previous diorama's materials, lighting, and time of day, but with a shallow depth of field and intimate scale. The wider map is gone; we are now fully inside a believable, tiny world. Ultra-detailed cinematic realism, Mediterranean-style atmospheric haze, photorealistic. Aspect ratio 16:9.`,
+    steps: ["Generate in the same AI image tool session as the Cartographic Diorama.", "Paste the Macro Metropolis prompt and replace [Main Landmark].", "For the video: open your AI video tool, upload the Diorama as Frame 1 and the Macro Metropolis as the Final Frame, then paste the Dive video prompt."],
+    examples: [{ label: "London Bridge", text: "Immersive street-level view of miniature London with Big Ben and cobblestone streets" }],
+        videoPrompt: `A seamless cinematic first-person dive starting from a high-angle macro view of the 3D topographical map. The camera accelerates vertically toward the [Main Landmark] miniature, specifically targeting the cobblestone streets near the landmark. As the camera descends, the perspective dynamically tilts up from a top-down isometric angle to a low-angle street-level horizon. The scale transforms fluidly: the 'toy-like' models grow into weathered, towering structures. The map's paper borders blur and vanish into a shallow-focus background as the camera settles into a grounded, intimate tracking shot. The warm, low-angle sunlight remains constant, casting lengthening shadows as we enter the world of the tiny pedestrians.`,
+workflowParts: ["IMG", "VID"]
+  },
+  {
+    id: "feb28-c",
+    guide: "feb28",
+    category: "miniature",
+    title: "World Within an Object",
+    description: "Grow a miniature city or landscape out of the inside of an everyday object, then animate the reveal.",
+    imageUrl: "images/venice-wooden-compass.webp",
+    variables: ["[Object]", "[Location Name]"],
+    promptText: `Create a finely detailed miniature 3D diorama shown from a 45-degree angled view, with strong focus on accurate scale, clean forms, and high-quality craftsmanship. A [Object] functions as the central base, from which a miniature version of [Location Name] naturally emerges, forming a self-contained micro-world. Recognizable landmarks, terrain elements, or symbolic structures tied to [Location Name] are carefully arranged and rendered with precision. Miniature roads and environmental features run through the scene, with small vehicles, figures, or subtle motion cues adding realism. Use cinematic lighting, soft highlights, and selective depth-of-field blur to create a magical, dreamlike atmosphere, blending playful isometric styling with realistic materials for a polished, premium diorama look. Highly cohesive, detailed composition with a cinematic finish and refined miniature-world aesthetic. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the World Within an Object prompt. Replace [Object] and [Location Name].", "In the same chat, paste the Removing the City edit prompt to create an empty shell.", "Open AI video tool. Upload the empty object as Frame 1 and the filled object as the Final Frame.", "Paste the From Empty Object to Filled Object video prompt."],
+    examples: [
+      { label: "Large Seashell / Santorini", text: "White coastal buildings and blue domes nestled inside a seashell" },
+      { label: "Vintage Pocket Watch / London", text: "Big Ben and the Thames visible through the watch face" },
+      { label: "Open Book / Ancient Rome", text: "The Colosseum and Roman streets rising from the pages" }
+    ],
+        editPrompt: `Remove the miniature city, buildings, boats, and all man-made elements from inside the [Object]. Leave the [Object] intact and realistic, with a clean, empty interior showing only natural texture and shadows. Preserve lighting, depth, and surface details, and seamlessly fill the removed area so it looks like an untouched, natural [Object].`,
+    videoPrompt: `Use the first attached image as the starting frame and the last attached image as the final reference. Start from a realistic, empty [Object] resting on a stone surface. Slowly animate the interior of the [Object] as a subtle transformation begins: the inner surface gently expands and morphs, revealing miniature architectural details emerging organically from the material. Gradually form the landmarks, streets, buildings, and atmosphere of [Location Name] inside the [Object]. The transformation should feel magical yet natural, as if the city is being sculpted from the [Object] itself. End with a fully formed miniature [Location Name] nestled inside the [Object], matching the final reference image.`,
+workflowParts: ["IMG", "EDIT", "VID"]
+  },
+  {
+    id: "mar14-11",
+    guide: "mar14",
+    category: "miniature",
+    title: "Mini Metro Diorama",
+    description: "Show an isometric cross-section of a subway line, complete with stations and a service status indicator.",
+    imageUrl: "images/mini-metro-diorama-tokyo.webp",
+    variables: ["[LINE NAME]"],
+    promptText: `Create a crisp 45-degree top-down isometric miniature 3D scene of the [LINE NAME]. The diorama includes detailed platforms, small trains, stairways, station signage, tiled walls, ticket machines, and waiting passengers in everyday attire.\nUse refined textures, realistic PBR materials, and lifelike lighting with soft shadows to enhance depth and spatial clarity.\nAt the top center, place the title matching the line name in bold sans-serif text. Below it, add a train icon followed by "Service Status" (small text) and a realistic status indicator (green for on-time, red for delays).\nClean tile-white background. Centered, minimal editorial infographic style. Square format, 1080x1080, ultra-detailed miniature 3D realism.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Mini Metro Diorama prompt.", "Replace [LINE NAME] with any real subway or metro line.", "Click Generate."],
+    examples: [
+      { label: "Central Line", text: "Red trains, London Underground roundel, specific tile pattern, 'Good Service' in green" },
+      { label: "7 Train NYC", text: "Gray and white trains, purple accents, New York signage" },
+      { label: "Ginza Line Tokyo", text: "Orange train, Japanese signage, narrower platform" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "mar28-b",
+    guide: "mar28",
+    category: "miniature",
+    title: "World Within a Bottle",
+    description: "Seal any location inside a glass bottle, then animate the bottle filling with the scene.",
+    imageUrl: "images/miniature-cairo-bottle.webp",
+    variables: ["[LOCATION NAME]"],
+    promptText: `Create a highly detailed miniature 3D diorama viewed from a 45-degree angle. A clear glass bottle serves as the base, inside which a miniature version of [LOCATION NAME] naturally forms as a self-contained micro-world. The internal environment must reflect the real geography and atmosphere of [LOCATION NAME] — coastal, desert, urban, mountainous, snowy, or tropical depending on the location. Include recognizable landmarks, terrain features, and subtle motion cues like tiny vehicles, figures, mist, or water movement. Use cinematic lighting appropriate to the region, realistic glass reflections and refractions, soft depth-of-field, and a premium miniature aesthetic. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the World Within a Bottle prompt and replace [LOCATION NAME].", "In the same chat, paste the Removing the World edit prompt.", "Open AI video tool. Upload the empty bottle as the first frame and the filled bottle as the last frame.", "Paste the From Empty Bottle to Location World video prompt."],
+    examples: [
+      { label: "Mount Fuji", text: "Snow-capped mountain with cherry blossoms inside a clear bottle" },
+      { label: "Venice", text: "Canals, gondolas, and colorful buildings sealed in glass" },
+      { label: "London", text: "Tower Bridge, Thames, Big Ben with city fog" },
+      { label: "Istanbul", text: "Hagia Sophia, Bosphorus, hillside city" }
+    ],
+        editPrompt: `Remove all miniature terrain, buildings, vegetation, water, and man-made elements of [LOCATION NAME] from inside the bottle. Leave only a clean, natural interior consistent with the environment (clear air, still water, sand, frost, or light haze). Preserve realistic lighting, reflections, refractions, and surface detail so the bottle looks untouched.`,
+    videoPrompt: `Use the first attached image as the starting frame and the last attached image as the final reference. Begin with a realistic glass bottle showing only its natural empty interior with accurate reflections and lighting. A smooth, organic transformation unfolds inside the bottle as the terrain, textures, and structures of [LOCATION NAME] emerge naturally from the interior material. Atmosphere, lighting, and environmental details gradually evolve to match the mood and conditions of the final reference image.`,
+workflowParts: ["IMG", "EDIT", "VID"]
+  },
+  {
+    id: "apr09-a",
+    guide: "apr09",
+    category: "people",
+    title: "Postcard World Emergence",
+    description: "Peel open a vintage postcard to reveal a 3D miniature city rising off the printed surface.",
+    variables: ["[CITY]", "[MAIN LANDMARK]"],
+    promptText: `A vintage travel postcard of [CITY] lies flat on a weathered wooden surface, viewed from a 35-degree elevated angle. The postcard's printed surface peels open along its center fold, revealing a fully realized 3D miniature cityscape rising from the interior — landmarks, streets, skyline, and atmospheric conditions authentic to [CITY]. [MAIN LANDMARK] rises prominently from the center of the opened card. Printed postcard borders, aged travel typography, and authentic stamp details remain visible around the edges. Soft depth-of-field, tactile paper texture realism, cinematic. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Postcard World Emergence prompt and replace [CITY] and [MAIN LANDMARK]. Generate.", "In the same chat, paste the Empty Postcard edit prompt and generate.", "Open AI video tool. Upload the Empty Postcard as the first frame and the full city postcard as the last frame.", "Paste the Postcard World Reveal video prompt and click Generate."],
+    examples: [
+      { label: "New York / Statue of Liberty", text: "Manhattan skyline rising from a vintage American postcard" },
+      { label: "Rome / Colosseum", text: "Ancient Rome emerging from an Italian travel postcard" }
+    ],
+        editPrompt: `Remove all 3D terrain, buildings, figures, and city elements of [CITY] from the postcard interior. Leave only the flat printed postcard surface with its original border design, travel typography, and aged paper texture. The wooden surface, lighting, and surrounding composition remain completely unchanged. Hyper-realistic paper stillness.`,
+    videoPrompt: `Use the first attached image as the starting frame and the last attached image as the final reference. Begin with the flat postcard resting closed on the wooden surface. The card gently folds open along its center crease. As the interior is revealed, terrain, structures, and atmospheric detail of [CITY] emerge organically from the printed surface — rising from flat illustration into full volumetric depth. [MAIN LANDMARK] assembles last, completing the scene. End with a fully formed miniature city rising from the open postcard, precisely matching the composition, lighting, and cinematic depth of the final reference.`,
+workflowParts: ["IMG", "EDIT", "VID"]
+  },
+  {
+    id: "apr09-b",
+    guide: "apr09",
+    category: "miniature",
+    title: "The Glacial Landmark",
+    description: "Seal a miniature city inside a translucent block of ice, then animate the ice crystallizing around it.",
+    imageUrl: "images/glacial-landmark-dubai.webp",
+    variables: ["[CITY]", "[MAIN LANDMARK]"],
+    promptText: `A colossal translucent glacial ice block rests on a dark reflective surface, viewed from a slightly elevated 30-degree angle. Sealed perfectly within the crystal-clear interior, a hyper-detailed miniature version of [CITY] is visible — authentic geography, recognizable skyline, and natural atmospheric conditions rendered in precise miniature scale. [MAIN LANDMARK] is centered within the ice, surrounded by subtle frozen mist and micro-scale urban detail. Deep internal blue-white glacial light refracts through the structure. Surface frost patterns, crystalline edge detail, cinematic cold-toned studio lighting, ultra-realistic. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Glacial Landmark prompt and replace [CITY] and [MAIN LANDMARK]. Generate.", "In the same chat, paste the Pure Ice Block edit prompt and generate.", "Open AI video tool. Upload the empty ice block as the first frame and the city-filled block as the last frame.", "Paste The Thaw Reveal video prompt and click Generate."],
+    examples: [
+      { label: "Tokyo / Tokyo Tower", text: "Deep internal blue light, detailed cityscape frozen in crystal ice" },
+      { label: "Buenos Aires / Obelisco", text: "Warmer light character sealed in glacial structure" },
+      { label: "Barcelona / Sagrada Familia", text: "Colder and more angular architectural details in ice" }
+    ],
+        editPrompt: `Remove all city elements, terrain, buildings, and figures of [CITY] from inside the ice block. Leave only a clean, pure glacial interior — clear crystalline structure, natural internal blue light, and authentic frost surface detail. The reflective base surface, studio lighting, and composition remain completely unchanged. Hyper-realistic glacial clarity.`,
+    videoPrompt: `Use the first attached image as the starting frame and the last attached image as the final reference. Begin with the pure empty ice block resting on the reflective surface. Internal light begins to shift and pulse subtly within the glacial structure. Miniature terrain, atmospheric layers, and architectural forms of [CITY] gradually crystallize and materialize inside the block — building from faint outlines to full volumetric detail. [MAIN LANDMARK] solidifies last at the center. End with the complete city sealed within the ice, precisely matching the composition, lighting, and cinematic depth of the final reference.`,
+workflowParts: ["IMG", "EDIT", "VID"]
+  },
+  {
+    id: "apr09-g",
+    guide: "apr09",
+    category: "people",
+    personalPhoto: true,
+    title: "The Personal Landmark Pop-Up",
+    description: "Place a miniature likeness beside a 3D landmark rising off a tourist postcard.",
+    variables: ["[CITY]", "[LANDMARK]"],
+    promptText: `A premium editorial tabletop scene where a folded illustrated tourist card of [CITY] lies on a warm wooden surface. From the correct geographic location on the card, a fully completed [LANDMARK] rises upward in true volumetric 3D. A miniature realistic version of the person from the provided reference image stands beside the landmark, dressed in casual travel attire matching the scene's tone. The facial identity must match the reference image exactly — natural skin texture, precise anatomy, photorealistic likeness, no stylization. Tiny travel elements such as miniature signposts, small luggage props, and subtle environmental storytelling details surround the structure. Warm afternoon sunlight, soft editorial shadows, cinematic depth of field, premium commercial photography realism, ultra-detailed. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Personal Landmark Pop-Up prompt and replace [CITY] and [LANDMARK]. Generate.", "In the same chat, paste the Deconstruct edit prompt to remove the landmark. Generate.", "Open AI video tool. Upload the flat card as the first frame and the complete landmark scene as the last frame.", "Paste the Personal Landmark Awakening video prompt and click Generate."],
+    examples: [{ label: "London / Big Ben", text: "Miniature figure with luggage and signpost props, warm afternoon editorial light" }],
+        editPrompt: `Remove the [LANDMARK], miniature person, props, and all travel elements from the tourist card. Only the flat illustrated tourist card of [CITY] remains on the table. Lighting, camera angle, shadows, depth of field, and surrounding tabletop objects remain perfectly unchanged. Maintain hyper-realistic stillness and editorial photographic clarity.`,
+    videoPrompt: `Create a smooth cinematic transformation where the flat illustrated tourist card of [CITY] gradually evolves into a fully realized 3D landmark scene. The [LANDMARK] rises prominently as the scene assembles. The miniature person materializes naturally within the scene, maintaining exact facial identity and proportions throughout the animation. Maintain consistent lighting, camera angle, framing, depth of field, and composition from start to finish. The transformation should feel physically believable — paper textures lifting, structural geometry forming, atmospheric detail emerging. Hyper-realistic morphing, ultra-detailed clarity.`,
+workflowParts: ["IMG", "EDIT", "VID"]
+  },
+  {
+    id: "apr25-1",
+    guide: "apr25",
+    category: "miniature",
+    title: "Suitcase World",
+    description: "Fill an open suitcase with a miniature city, then animate the world assembling inside it.",
+    imageUrl: "images/suitcase-world-san-francisco.webp",
+    variables: ["[LOCATION]", "[MAIN LANDMARK]"],
+    promptText: `A slightly worn travel suitcase rests on a textured surface, viewed from a 35-degree elevated angle. The suitcase is partially open, revealing a fully realized miniature world inside — terrain, architecture, and atmosphere authentic to [LOCATION]. [MAIN LANDMARK] rises prominently from the center of the suitcase interior, surrounded by detailed environmental elements such as water, vegetation, streets, or buildings. The inner fabric lining of the suitcase remains visible around the edges, framing the world like a contained universe. Subtle travel stickers, scratches, and worn textures enhance realism. Soft depth-of-field, cinematic lighting, ultra-realistic materials. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Suitcase World Emergence prompt. Replace [LOCATION] and [MAIN LANDMARK]. Generate.", "In the same chat, paste the Empty Suitcase Cleanup prompt and generate.", "Open AI video tool. Upload the Empty Suitcase as the first frame and the World Scene as the last frame.", "Paste the Suitcase World Reveal video prompt and click Generate."],
+    examples: [
+      { label: "USA / Times Square", text: "LED towers rising from the center of miniature Manhattan, travel stickers on the suitcase" },
+      { label: "Italy / The Coliseum", text: "Ancient Roman architecture filling the interior, worn leather and terracotta tones" },
+      { label: "Japan / Mount Fuji", text: "Mountain surrounded by stunning landscapes, cinematic depth of field" }
+    ],
+        editPrompt: `Remove all terrain, buildings, vehicles, figures, and environmental elements of [LOCATION] from the suitcase interior. The suitcase, surface, lighting, and composition remain completely unchanged. Hyper-realistic stillness.`,
+    videoPrompt: `Use the first attached image as the starting frame and the last attached image as the final reference. Begin with the suitcase resting naturally on the surface. As the interior becomes slowly visible, the empty space begins to transform — terrain of [LOCATION] forms organically from within the lining. Sand, water, or ground textures spread outward first, followed by vegetation, streets, or structures rising upward. [MAIN LANDMARK] assembles last, becoming the focal point of the miniature world. End with a fully formed [LOCATION] contained inside the open suitcase, with cinematic lighting and depth-of-field matching the final reference.`,
+workflowParts: ["IMG", "EDIT", "VID"]
+  },
+  {
+    id: "apr25-2",
+    guide: "apr25",
+    category: "miniature",
+    title: "City Made of Play-Doh",
+    description: "Sculpt any city from colorful modeling clay, then animate the clay forming into a skyline.",
+    imageUrl: "images/play-doh-city-agra.webp",
+    variables: ["[CITY]", "[MAIN LANDMARK]"],
+    promptText: `A vibrant, hand-crafted mass of colorful modeling clay sits on a clean tabletop surface, viewed from a slightly elevated 30-degree angle. Within this soft, tactile material, a hyper-detailed miniature version of [CITY] is sculpted entirely from clay — buildings, streets, and environmental details formed with visible finger-molded textures. [MAIN LANDMARK] rises prominently at the center, carefully shaped from layered clay, with slight imperfections and hand-crafted charm. Bright, playful colors define different parts of the city — roads, rooftops, greenery, and water — all made from distinct clay tones. Subtle fingerprints, tool marks, and soft edges enhance realism. Studio lighting, soft shadows, ultra-detailed tactile textures. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Play-Doh Landmark prompt. Replace [CITY] and [MAIN LANDMARK]. Generate.", "In the same chat, paste the Pure Clay Mass Cleanup prompt and generate.", "Open AI video tool. Upload the Raw Clay Mass as the first frame and the Clay City as the last frame.", "Paste the Clay Formation Reveal video prompt and click Generate."],
+    examples: [
+      { label: "Paris / Eiffel Tower", text: "Warm terracotta tones, finger-molded texture, blue clay for the Seine" },
+      { label: "London / Big Ben", text: "Warm red tones beside a blue clay Thames" },
+      { label: "Athens / The Acropolis", text: "Pale stone tones rising from a layered clay hillside" }
+    ],
+        editPrompt: `Remove all sculpted city elements, buildings, streets, and recognizable shapes of [CITY] from the clay mass. Leave only a smooth, slightly uneven lump of colorful modeling clay with natural folds, fingerprints, and soft blending between colors. Maintain the same tabletop surface, lighting, and composition. No structured forms or city elements visible. Hyper-realistic tactile stillness.`,
+    videoPrompt: `Use the first attached image as the starting frame and the last attached image as the final reference. Begin with a soft, unstructured mass of colorful clay resting on the tabletop. The clay begins to subtly shift and stretch, as if guided by invisible hands. [MAIN LANDMARK] is sculpted slowly, with careful shaping and final detailing that brings all of [CITY] together. End with a fully formed miniature [CITY] made entirely of clay, with vibrant colors, soft textures, and cinematic depth-of-field matching the final reference.`,
+workflowParts: ["IMG", "EDIT", "VID"]
+  },
+
+  {
+    id: "mar14-4",
+    guide: "mar14",
+    category: "city",
+    title: "Voxel Skyline Cube",
+    description: "Show any city as a floating voxel terrain cube, with landmarks on top and a cross-section below.",
+    imageUrl: "images/voxel-skyline-cube-sydney.webp",
+    variables: ["[CITY]"],
+    promptText: `Cinematic voxel-style 3D scene of a floating terrain cube representing [CITY], viewed from a slightly elevated angle. The cube exposes layered grass, soil, stone, and subtle glowing underground elements in a clean block aesthetic.\nOn top, a miniature voxel diorama highlights the most iconic landmarks and scenery of [CITY]. Above it, a pixel-style wooden sign displays the city name in bold white block letters alongside the city's respective country flag for clear visibility.\nBright daytime sky with soft cubic clouds and balanced natural lighting. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Voxel Skyline Cube prompt.", "Replace [CITY] with any city.", "Click Generate."],
+    examples: [
+      { label: "Paris", text: "Eiffel Tower, Notre-Dame, Seine, three underground layers" },
+      { label: "London", text: "Big Ben, Thames in voxel blocks" },
+      { label: "Istanbul", text: "Hagia Sophia, Bosphorus in colorful voxel style" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "mar21-a",
+    guide: "mar21",
+    category: "city",
+    title: "Giant Object Illusion Generator",
+    imageUrl: "images/giant-object-illusion-lisbon.webp",
+    description: "Place an oversized everyday object into a real city street using forced-perspective realism.",
+    variables: ["[OBJECT_NAME]", "[CITY_ENVIRONMENT]"],
+    promptText: `Create a surreal city scene where an oversized [OBJECT_NAME] appears dramatically larger than life in [CITY_ENVIRONMENT], interacting with buildings, streets, or pedestrians to create a visually shocking illusion that feels both playful and realistic; style: hyper-realistic photography with cinematic depth of field, accurate forced perspective, correct shadow casting, and photorealistic scale. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Giant Object Illusion Generator prompt.", "Replace [OBJECT_NAME] and [CITY_ENVIRONMENT] with your choices.", "Click Generate."],
+    examples: [
+      { label: "Coffee cup in New York", text: "Giant coffee cup among Manhattan skyscrapers, pedestrians walking past" },
+      { label: "Giant cat in Tokyo", text: "Enormous cat lounging across a Tokyo intersection" },
+      { label: "Croissant in Paris", text: "Massive croissant blocking a Parisian boulevard" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "mar21-b",
+    guide: "mar21",
+    category: "city",
+    title: "SkyLens",
+    description: "Frame a city skyline through an airplane window, with cabin reflections and warm cinematic light.",
+    imageUrl: "images/skylens-chicago.webp",
+    variables: ["[CITY OR LOCATION]"],
+    promptText: `Generate a highly realistic travel-style photo as if it was captured through the window of a commercial airplane while flying above [CITY OR LOCATION]. The scene should match the real geography of the place—recognizable landmarks, believable city structure, and a natural atmosphere. Aim for a cinematic aerial travel photography look, including subtle reflections and lighting on the airplane window glass to enhance authenticity. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the SkyLens prompt.", "Replace [CITY OR LOCATION] with any city.", "Click Generate."],
+    examples: [
+      { label: "Istanbul", text: "Bosphorus, mosques, bridges visible through airplane window glass" },
+      { label: "London", text: "Thames bends, Big Ben from aerial view with window reflections" },
+      { label: "Delhi", text: "Dense urban grid, Mughal landmarks from 35,000 ft" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "mar28-c",
+    guide: "mar28",
+    category: "city",
+    title: "Graffiti Wall Metropolis",
+    imageUrl: "images/graffiti-wall-valparaiso.webp",
+    description: "Carve a city's skyline as a 3D relief inside a single spray-paint stroke on a concrete wall.",
+    variables: ["[CITY]"],
+    promptText: `A bold, vibrant graffiti spray composition spreads dynamically across a raw concrete wall, viewed from a clean frontal perspective. Within a single sweeping graffiti form exists a miniature 3D bas-relief vision of [CITY], where iconic landmarks, skyline silhouettes, and urban textures emerge subtly from layered spray paint and stencil contours. Color treatment is energetic and saturated, using expressive street-art tones inspired by the cultural identity of [CITY]. Depth is created through paint drips, layered tags, soft overspray gradients, and subtle raised pigment textures. Aesthetic: Contemporary street art fused with refined editorial poster design. Lettering: "[CITY]" rendered as stylized graffiti typography integrated into the composition. Structural Constraint: All architectural detail must remain contained within the main graffiti shape. Ultra-vivid color fidelity, cinematic contrast, tactile wall texture realism, exhibition-quality clarity. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Graffiti Wall Metropolis prompt.", "Replace [CITY] (appears twice in the prompt).", "Click Generate."],
+    examples: [
+      { label: "Berlin", text: "Brandenburg Gate, TV Tower, Wall segment in the spray — muted grays and bold yellows" },
+      { label: "Rio", text: "Warm saturated tones, Christ the Redeemer silhouette" },
+      { label: "Sydney", text: "Bold blues, Opera House shell carved into the graffiti form" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "may14-1",
+    guide: "may14",
+    category: "city",
+    title: "Giant Local Food Illusion",
+    description: "Build a city's streets entirely out of its most iconic food, scaled to impossible size.",
+    variables: ["[CITY]"],
+    promptText: `Create a surreal urban scene where a massive iconic local food from [CITY] dominates the environment, towering over buildings and naturally blending into daily life. The food should be culturally accurate and instantly recognizable (e.g. croissant in Paris, sushi in Tokyo, bagel in New York), interacting with streets, cafés, and pedestrians. People should engage with it naturally—walking around it, taking photos, or sitting nearby—enhancing the sense of scale. Ensure the food's textures are highly detailed and realistic (crispy, flaky, glossy, melted, etc.), and that lighting matches the city's atmosphere. The scene should feel playful yet believable, as if captured in real life. Style: hyper-realistic photography, cinematic lighting, shallow depth of field, vibrant colors, dramatic perspective. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Giant Local Food Illusion prompt.", "Replace [CITY] with your chosen city.", "Click Generate."],
+    examples: [
+      { label: "Istanbul", text: "Giant simit (sesame-crusted ring bread) in İstiklal Avenue, tram running beneath" },
+      { label: "Rome", text: "Massive pizza filling the space between ancient buildings" },
+      { label: "Tokyo", text: "Giant sushi piece rising from Shibuya Crossing" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "may14-2",
+    guide: "may14",
+    category: "city",
+    title: "Penthouse Perspective",
+    imageUrl: "images/penthouse-perspective-hong-kong.webp",
+    description: "Frame a city skyline through floor-to-ceiling windows from inside a luxury penthouse.",
+    variables: ["[CITY]"],
+    promptText: `Create a cinematic city view from inside a luxury penthouse in [CITY], looking outward through floor-to-ceiling windows. The composition should include subtle interior elements (window frames, reflections, minimal decor shadows) without distracting from the city view. Ensure the city looks geographically accurate, with believable roads, landmarks, and skyline composition. Lighting should match a natural time of day (sunset, dusk, or morning glow), creating depth and realism. Style: ultra-realistic, cinematic tones, soft lighting, depth of field, high detail. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Penthouse Perspective prompt.", "Replace [CITY] with your chosen city.", "Click Generate."],
+    examples: [
+      { label: "Sydney", text: "Opera House and Harbour Bridge centered, sunset warm depth" },
+      { label: "London", text: "The Shard and Tower Bridge at dusk, amber skyline" },
+      { label: "Paris", text: "Eiffel Tower at golden hour through the window, Haussmann rooftops" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "may14-3",
+    guide: "may14",
+    category: "city",
+    title: "Nature Takeover",
+    imageUrl: "images/nature-takeover-reykjavik.webp",
+    description: "Reclaim any city with vines and overgrowth, then animate the transition from clean to wild.",
+    variables: ["[CITY]"],
+    promptText: `Create a hyper-realistic image of [CITY] overtaken by nature. Vines climb the building facades from street to roofline, trees split the cobblestones apart, and flowers grow in every window frame. Iconic landmarks are still visible through the canopy. The scene feels abandoned and beautiful — reclaimed by nature, not destroyed. Style: hyper-realistic photography, cinematic lighting, lush detail, soft depth of field. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Nature Takeover Active Scene prompt and replace [CITY]. Generate.", "In the same chat, paste the Still Scene prompt and generate.", "Open AI video tool. Upload the Still Scene as the first frame and the Active Scene as the last frame.", "Paste the Transition video prompt and click Generate."],
+    examples: [],
+        editPrompt: `Same scene, same [CITY], same composition — but now the city is fully clean and maintained. No vines, no overgrowth, no nature intrusion. Clean streets, maintained buildings, [CITY] exactly as it normally looks. Hyper-realistic, same lighting and framing as the previous image.`,
+    videoPrompt: `Animate a smooth transition from the clean [CITY] to the fully overgrown nature takeover version. Vines crawl up the walls, branches push through the cobblestones. [CITY] goes from fully maintained to fully overgrown in one continuous take. Style: cinematic, smooth transformation, hyper-realistic.`,
+workflowParts: ["IMG", "VID"]
+  },
+
+  {
+    id: "feb28-d",
+    guide: "feb28",
+    category: "art",
+    title: "Metropolitan Stroke",
+    imageUrl: "images/metropolitan-stroke-lhasa.webp",
+    description: "Carve a city skyline in 3D relief inside a single frozen brushstroke, painted in the nation's colors.",
+    variables: ["[CITY]"],
+    promptText: `A paintbrush, frozen in motion, sweeps a sophisticated arc spanning from the bottom left toward the top right. Within this single stroke exists a microscopic vision of [CITY], executed as an intricate 3D bas-relief cityscape carved from stratified oil pigments. Inside the sweep: Renowned monuments, urban structures, and the unique environmental cadence of [CITY] are composed as a unified miniature featuring tangible depth and delicate textural relief.\nAesthetic: Impasto oil techniques merged with formal academic poster styling. Varied thicknesses of paint generate dimension, allowing three-dimensional shapes to rise from the brushwork. The tonal scheme adheres to the formal national colors of the country linked to [CITY], harmoniously integrated.\nPerspective & Setting: Clean, overhead viewpoint set against stark white negative space on high-quality grained paper. Lettering — Header: "[CITY]" — evocative tagline and secondary serif text, organized with precise kerning.\nStructural Constraints: The bristles finish sharply at the upper right. Every intricate element is confined strictly within the boundaries of the stroke. Ultra-high definition, HDR, exhibition-quality. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Metropolitan Stroke prompt.", "Replace [CITY] with any major city.", "Click Generate."],
+    examples: [
+      { label: "New York", text: "Cool grays + reds, Manhattan landmarks within the brushstroke" },
+      { label: "Delhi", text: "Warm ochres + saffron, Mughal landmarks" },
+      { label: "Tokyo", text: "Sharp reds + neutrals, tower and shrine details" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "feb28-e",
+    guide: "feb28",
+    category: "art",
+    title: "Living Blueprint",
+    imageUrl: "images/living-blueprint-jeddah.webp",
+    description: "Raise a 3D structure off an architectural blueprint, then animate the build from blank page to finished form.",
+    variables: ["[BUILDING/STRUCTURE]"],
+    promptText: `Grand 3D visualization of a fully completed [BUILDING/STRUCTURE] rendered as a high-relief, embossed 3D architectural model integrated into a blueprint sheet lying flat on a desk. The building has true three-dimensional depth, volume, and perspective, rising subtly from the paper like a sculpted bas-relief, while remaining fully attached to the page. Ink lines transform into shaded stone, steel, and glass surfaces with realistic light, depth, and cast shadows contained within the paper surface. Fully furnished interiors and exterior facades are visible through isometric and cutaway details, all embedded in the drawing. Holographic engineering quality. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Schematic Building prompt and replace [BUILDING/STRUCTURE]. Generate.", "In the same chat, paste the Deconstruct: Remove Structure edit prompt. Generate.", "Open AI video tool. Upload the blank drafting table as Frame 1 and the completed blueprint as the Final Frame.", "Paste the Schematic Surge video prompt."],
+    examples: [{ label: "Big Ben", text: "Detailed miniature tower rising from the blueprint, coffee mug beside it" }],
+        editPrompt: `Revert the environment to its initial, pre-transformation state. Only the vacant, unprinted blueprint is visible, resting upon the wooden drafting station. Stripped of all 3D projections of [BUILDING/STRUCTURE], vertical forms, girders, or active assembly. The paper surface is entirely blank and devoid of markings, lacking any linework, layouts, or technical annotations. Supporting equipment is preserved: straightedge, dividers, scrolls, mug, and the tabletop finish. Illumination, lens position, viewpoint, and focal blur stay consistent. The vellum looks level and tranquil, exhibiting tactile grain, slightly upturned corners, and naturalistic shading. Hyper-realistic, movie-quality authenticity, immense clarity.`,
+    videoPrompt: `An immersive seamless evolution in which a vacant drafting schematic gradually awakens. Obsidian ink strokes radiate a soft luminescence, ascending to form delicate structural lattices of [BUILDING/STRUCTURE]. Bases surge from the parchment, iron frameworks develop level by level, robotic derricks appear to piece together modules, and crystalline panes integrate flawlessly until the entire edifice reaches completion. Airborne particles dance through golden solar rays, the lens steadily glides inward, hyper-realistic, fluid, continuous.`,
+workflowParts: ["IMG", "EDIT", "VID"]
+  },
+  {
+    id: "mar14-5",
+    guide: "mar14",
+    category: "art",
+    title: "Living Empire Atlas",
+    imageUrl: "images/living-empire-atlas-cusco.webp",
+    description: "Unfurl an ancient map into a 3D isometric scene with stacked eras and a spiral timeline carved into the terrain.",
+    variables: ["[SUBJECT]", "[CIVILIZATION LAYERS]"],
+    promptText: `Epic 3D isometric atlas scene: an ancient map of [SUBJECT] expands from an unfurled parchment, filling the frame. Ink lines transform into living terrain — rising mountains, tiered cities, glowing rivers, and softly gilded borders.\nStacked eras of [CIVILIZATION LAYERS] overlap as if time is folding into itself. A spiral timeline engraved with dates winds across the map.\nExtreme scale contrast, dense micro-detail, golden-hour lighting, volumetric dust, cinematic depth, UE5 aesthetic. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Living Empire Atlas prompt.", "Replace [SUBJECT] with a civilization or empire, and [CIVILIZATION LAYERS] with 4 sequential eras.", "Click Generate."],
+    examples: [{ label: "Ancient Egypt", text: "Pyramids rising from parchment, glowing Nile, spiral timeline with four eras" }],
+    workflowParts: null
+  },
+  {
+    id: "mar14-1",
+    guide: "mar14",
+    category: "art",
+    title: "Micro Nail Masterpiece",
+    imageUrl: "images/micro-nail-masterpiece-monet.webp",
+    description: "Show a tiny artist on a ladder painting a classic artwork onto a human fingernail.",
+    variables: ["[SUBJECT]"],
+    promptText: `Extremely immersive ultra-detailed macro shot of a miniature artist seated on a tiny folding ladder, painting [SUBJECT] onto a large human fingernail. The tiny painter holds a circular palette and a thin precision brush, carefully replicating the light, texture, and fine strokes of [SUBJECT]. The nail surface is glossy, gently curved, and reflective with soft shadows. Soft diffused lighting and a creamy blurred background isolate the scene. Photorealistic shallow depth of field, surreal visual narrative. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Micro Nail Masterpiece prompt.", "Replace [SUBJECT] with any classic painting.", "Click Generate."],
+    examples: [
+      { label: "Mona Lisa", text: "Miniature artist painting the Mona Lisa onto a glossy curved fingernail" },
+      { label: "The Scream", text: "Edvard Munch's artwork being replicated with tiny brushstrokes" },
+      { label: "American Gothic", text: "Grant Wood's iconic scene reproduced at miniature scale" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "mar21-f",
+    guide: "mar21",
+    category: "people",
+    title: "Director Frame",
+    description: "Mark up a cinematic still with handwritten director notes, then animate the camera following them.",
+    variables: ["[SUBJECT]", "[LOCATION]", "[TIME_OF_DAY]", "[OBJECT]", "[CAMERA_MOVE_1]", "[CAMERA_MOVE_2]"],
+    promptText: `Create a cinematic still of [SUBJECT] at [LOCATION] during [TIME_OF_DAY], with [OBJECT]. The image should resemble a director's annotated film frame, featuring white arrows and handwritten notes that indicate camera movement and shot direction.\nAnnotations point out [CAMERA_MOVE_1], [CAMERA_MOVE_2], and [FOCUS_MOVE].\nStyle: realistic photography, cinematic framing with camera-direction annotations, widescreen 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Director Frame template and fill in all variables.", "Generate the annotated still image.", "Feed the image into a video generator with instructions to execute the annotations as camera movements."],
+    examples: [{ label: "Cafe Scene (pre-filled)", text: "Happy woman at a café, annotated with slow push-in, gentle pan, rack focus from coffee to smile" }],
+        videoPrompt: `Execute the handwritten director annotations from the reference still as real camera movements. Perform a [CAMERA_MOVE_1], followed by a [CAMERA_MOVE_2]. Apply [FOCUS_MOVE]. Do not display the annotation arrows or text in the final video — translate them into actual camera motion only. Maintain the scene of [SUBJECT] at [LOCATION] during [TIME_OF_DAY] throughout.`,
+workflowParts: ["IMG", "VID"]
+  },
+  {
+    id: "mar21-g",
+    guide: "mar21",
+    category: "art",
+    title: "TechPulse Tablet",
+    imageUrl: "images/techpulse-tablet.webp",
+    description: "Show a realistic tablet screen displaying a fictional tech news front page with a full editorial layout.",
+    variables: ["[HEADLINE]"],
+    promptText: `Create a hyper-realistic image of a person holding an iPad in their hand, displaying a front-page style tech news article announcing [HEADLINE]. The screen should look like a professional digital publication with structured editorial layout, including subheadings, benchmark references, performance highlights, and clean article formatting. Ensure the iPad interface, lighting, reflections on the glass, and hand grip appear natural and lifelike. Style the scene like a modern technology news feature with crisp typography, realistic tablet display glow, and high-resolution photographic detail. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the TechPulse Tablet prompt.", "Replace [HEADLINE] with your chosen tech headline.", "Click Generate."],
+    examples: [{ label: "OpenAI releases GPT-5", text: "Full editorial layout with performance benchmarks and structured article" }],
+    workflowParts: null
+  },
+  {
+    id: "mar21-h",
+    guide: "mar21",
+    category: "art",
+    title: "Evolutionary Timeline",
+    imageUrl: "images/evolutionary-timeline-birds.webp",
+    description: "Lay out a multi-panel timeline tracing a species from ancient origins to its modern form.",
+    variables: ["[SUBJECT]"],
+    promptText: `[SUBJECT]: Show evolutionary stages from ancient origins to the modern form. Display the complete progression as a horizontal multi-panel timeline, with each stage showing accurate anatomical proportions, a clear era label with approximate time period, and a historically appropriate environment behind the subject. Render every panel in photorealistic detail with consistent lighting and scientific accuracy. Style: museum-exhibit educational infographic, cinematic realism. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Evolutionary Timeline prompt.", "Replace [SUBJECT] with any species.", "Click Generate."],
+    examples: [
+      { label: "Dog", text: "Ancient wolf through first domesticated canines to modern breeds" },
+      { label: "Human", text: "Early hominids through Homo erectus to modern humans" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "mar28-e",
+    guide: "mar28",
+    category: "art",
+    title: "The Illustrated Tourist Map",
+    imageUrl: "images/illustrated-tourist-map-istanbul.webp",
+    description: "Raise a 3D landmark off a hand-illustrated map on a café table, then animate it from blank paper.",
+    variables: ["[CITY]", "[BUILDING/STRUCTURE]"],
+    promptText: `A colorful hand-illustrated tourist map of [CITY] lies unfolded on a wooden café table. Playful icons of landmarks, parks, rivers, and attractions decorate the map. From the correct location, a fully completed [BUILDING/STRUCTURE] rises in true volumetric 3D above the flat illustrated surface. Tiny tourist figurines, miniature buses, and travel markers surround the structure. Warm afternoon sunlight, coffee cup nearby, vibrant editorial realism, cinematic. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Illustrated Tourist Map prompt and replace [CITY] and [BUILDING/STRUCTURE]. Generate.", "In the same chat, paste the Deconstruct edit prompt to get blank paper. Generate.", "Open AI video tool. Upload the blank paper as the first frame and the complete map as the last frame.", "Paste the Tourist Map Awakening video prompt."],
+    examples: [{ label: "Sydney / Sydney Opera House", text: "Colorful illustrated map with the Opera House rising in 3D, coffee cup in the corner" }],
+        editPrompt: `Remove the [BUILDING/STRUCTURE], all tourist figurines, miniature buses, and travel markers from the map. Only the flat illustrated tourist map of [CITY] remains on the café table. The table surface, coffee cup, lighting, and camera angle remain completely unchanged. Hyper-realistic stillness.`,
+    videoPrompt: `Create a smooth cinematic transformation where the map of [CITY] gradually materializes from blank paper, elements appearing from minimal to fully detailed. The [BUILDING/STRUCTURE] rises last in true volumetric 3D above the illustrated surface. Maintain consistent lighting, camera angle, depth of field, and composition throughout. Hyper-realistic, seamless morphing, premium commercial photography style, ultra-detailed.`,
+workflowParts: ["IMG", "EDIT", "VID"]
+  },
+  {
+    id: "apr25-3",
+    guide: "apr25",
+    category: "art",
+    title: "Timeline Infographic",
+    imageUrl: "images/timeline-infographic-video-games.webp",
+    description: "Lay out any person or topic as a horizontal timeline of key milestones with icons and a portrait.",
+    variables: ["[FAMOUS PERSON or TOPIC]"],
+    promptText: `Create a clean infographic timeline of [FAMOUS PERSON or TOPIC]. Show 5–8 key moments in chronological order using a horizontal layout. Each milestone includes: year, short description, and simple icon. Add a subtle portrait or symbol of [FAMOUS PERSON or TOPIC]. Title: "[FAMOUS PERSON or TOPIC] — Key Moments". Modern minimal design, clear hierarchy, cohesive colors, high readability. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Timeline Infographic prompt.", "Replace [FAMOUS PERSON or TOPIC] with your chosen subject (appears three times).", "Click Generate."],
+    examples: [
+      { label: "Taylor Swift", text: "Seven milestones, one per era, illustrated icons, central portrait" },
+      { label: "Space Exploration", text: "Seven milestones from Sputnik to Perseverance, icons per event" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "may14-8",
+    guide: "may14",
+    category: "people",
+    title: "Growth Timeline",
+    description: "Chart any subject's progress from beginner to advanced as a staged infographic.",
+    variables: ["[SUBJECT]"],
+    promptText: `[SUBJECT]: Show progression from beginner to advanced stage\nCreate a visual timeline showing a clear progression from a basic stage to a highly developed version. Include multiple stages with noticeable differences in complexity, tools, environment, or capability, emphasizing growth over time.\nStyle: modern infographic, storytelling-focused, clean sections, high detail. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Growth Timeline prompt.", "Replace [SUBJECT] with your chosen subject.", "Click Generate."],
+    examples: [
+      { label: "Content Creator", text: "Four stages: Discovery, Semi-Pro, Professional, Mogul" },
+      { label: "Fitness Journey", text: "Five stages from yoga mat at home to elite outdoor training" },
+      { label: "Chef", text: "Culinary student through to master chef, different kitchens" }
+    ],
+    workflowParts: null
+  },
+
+  {
+    id: "feb28-f",
+    guide: "feb28",
+    category: "people",
+    personalPhoto: true,
+    title: "The Branding Fisheye",
+    description: "Frame a commercial portrait through an extreme wide-angle lens, with a branded drink filling the foreground.",
+    variables: ["[BRAND]", "[DRINK TYPE]", "[COLOR]", "[SHIRT COLOR]", "[GRADIENT COLOR]"],
+    promptText: `A premium studio-lit close-up of a joyful individual clutching a [BRAND] [DRINK TYPE] aluminum cylinder near the lens, positioning both the beverage and the subject's expression in the immediate foreground. Captured via an extreme-wide fisheye optic to achieve a spirited, vibrant, and engaging aesthetic. The subject is styled in a lustrous [COLOR] quilted puffer coat influenced by [BRAND] aesthetics, worn over a [SHIRT COLOR] top. Set against a [GRADIENT COLOR] blended backdrop, meticulously coordinated with [BRAND] hues, featuring sleek contemporary color shifts.\nSoft-focus cinematic lighting, succulent light pings on the metal, polished glares on the outerwear, and subtle shadowing to provide depth. An editorial approach with slightly muted tones but a crisp feel, adhering to a stripped-back, sophisticated soft drink marketing layout. The facial features must correspond to the provided reference shot with absolute precision — natural skin texture, precise anatomy, and zero modifications. High-definition clarity, photographic realism, and top-tier commercial drink photography standards. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Branding Fisheye prompt and fill in all brand variables. Generate.", "For the video: paste The Branding Snap prompt with your F image."],
+    examples: [
+      { label: "The AI Garage / Sparkling Energy Drink", text: "Electric-blue coat, cyan-to-violet backdrop, aluminum can" },
+      { label: "Nike / Performance Hydration Drink", text: "Dark athletic palette, bold sporty energy" }
+    ],
+        videoPrompt: `A [BRAND] [DRINK TYPE] aluminum cylinder glides at high speed directly toward the lens on a straight trajectory. Captured with an extreme-wide fisheye lens, the subject reaches out and firmly catches the beverage in the immediate foreground. The action terminates in a crisp, stabilized studio-lit hero shot, focusing on the subject's joyful expression and the perfectly positioned [BRAND] product.`,
+workflowParts: ["IMG", "VID"]
+  },
+  {
+    id: "feb28-gh",
+    guide: "feb28",
+    category: "food",
+    title: "Deconstructed Old Fashioned",
+    description: "Shoot a refined cocktail as a product photo, then explode it into a labeled infographic and animate the reveal.",
+    variables: [],
+    promptText: `A high-quality, professional product photograph of a heavy crystal rocks glass filled with a deep amber Old Fashioned. The cocktail features a single, perfectly clear ice sphere and a thin, expressed orange peel twist. Minimalist style, shot against a pure solid white background with soft, natural shadows. Sharp focus, clean aesthetic. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Amber Minimalist prompt to generate the assembled cocktail shot.", "Paste The Deconstructed Old Fashioned prompt for the exploded-view infographic.", "Open AI video tool. Upload the Deconstructed image as Frame 1 and the Amber Minimalist as the Final Frame.", "Paste the Infographic Ascent video prompt."],
+    examples: [{ label: "Old Fashioned", text: "Exploded view: orange zest, ice cube, bourbon splash, cherry, sugar crystals, rocks glass base — each floating with labels" }],
+        videoPrompt: `Action: The camera pulls back as the cocktail elements ascend vertically out of the glass. Transformation: The liquid morphs into a dynamic mid-air splash; the ice sphere becomes a faceted cube; and the orange twist unfurls with a mist of essential oils. Emergence: A Luxardo cherry and sugar crystals pop into the floating layers from within the rising bourbon. UI Integration: As movement stabilizes, minimalist infographic labels and thin pointer lines glide in to identify each floating element. Style: Transition from natural soft lighting to a high-key studio white aesthetic with ultra-sharp macro focus.`,
+workflowParts: ["IMG", "VID"]
+  },
+  {
+    id: "mar14-3",
+    guide: "mar14",
+    category: "brand",
+    title: "Pocket Runway Showcase",
+    imageUrl: "images/pocket-runway-showcase-watch-app.webp",
+    description: "Build a giant 3D smartphone into a display cabinet, with miniature workers handling your product inside.",
+    variables: ["[PRODUCT TYPE]", "[THEME NAME]", "[COLOR PALETTE]", "[UNIFORM DESCRIPTION]"],
+    promptText: `Hyper-realistic 3D commercial photograph of one giant smartphone standing vertically on a studio floor, centered in the frame. Shot from a subtle three-quarter angle to enhance depth and realism.\nThe screen functions as a physical display cabinet with four recessed compartments arranged in a 2x2 grid, showcasing volumetric 3D [PRODUCT TYPE] with dramatic shadows.\nUI theme: [THEME NAME] using a [COLOR PALETTE] scheme. A clean top bar and minimal bottom navigation are visible.\nFour lifelike miniature workers in [UNIFORM DESCRIPTION] interact with the products, featuring detailed skin, hair, and fabric textures.\nProfessional studio lighting highlights material texture and dimensional depth. Clean studio background. Single composition. No split screen. No duplicate phone. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Pocket Runway Showcase prompt.", "Replace all four variables.", "Click Generate."],
+    examples: [{ label: "Sneaker / Urban Police / Orange+Dark Gray / Tactical Uniforms", text: "Physically correct shadows inside each compartment, workers with realistic fabric texture" }],
+    workflowParts: null
+  },
+  {
+    id: "mar14-9",
+    guide: "mar14",
+    category: "brand",
+    title: "Futuristic Brand Poster",
+    imageUrl: "images/futuristic-brand-poster-perfume.webp",
+    description: "Build an entire dreamlike world out of a product's core ingredient for a brand advertising poster.",
+    variables: ["[BRAND NAME]", "[PRODUCT TYPE]"],
+    promptText: `Create a high-end, dreamlike advertising visual for [BRAND NAME] – [PRODUCT TYPE]. The product should feel seamlessly integrated into an expansive, imaginative environment that is entirely constructed from its defining ingredient, signature element, or central concept.\nFrom the upper portion of the scene, this key element pours or unfolds downward, passing through the product and evolving into natural formations below — such as streams, cascades, mist, reflective pools, or immersive landscapes. Every part of the environment — ground textures, plant life, air quality, lighting mood, and color scheme — should visually echo the product's essence, flavor profile, purpose, or design language. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Futuristic Brand Poster prompt.", "Replace [BRAND NAME] and [PRODUCT TYPE].", "Click Generate."],
+    examples: [
+      { label: "AI Garage energy drink", text: "Circuit patterns become waterfalls, neon mist, glowing figures" },
+      { label: "Running shoe", text: "Sole texture becomes desert sand dunes" },
+      { label: "Leather handbag", text: "Leather grain becomes a golden canyon at sunset" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "mar14-7",
+    guide: "mar14",
+    category: "people",
+    personalPhoto: true,
+    title: "Reference-Driven Cover Creator",
+    description: "Compose a branded magazine cover with full typography and callout lines from your style references.",
+    variables: [],
+    promptText: `Combine the images creatively to produce a magazine cover photoshoot, with the overall style and aesthetic guided by the provided reference images. Aspect ratio 16:9.`,
+    steps: ["Upload style reference images (product lineup, mood board) together with a model portrait photo.", "Open AI image tool and click Create Image.", "Paste the Magazine Cover Composite prompt.", "Click Generate."],
+    examples: [{ label: "Product lineup + portrait", text: "Fully branded magazine cover with model front and center, products as editorial callouts, publication name auto-generated" }],
+    workflowParts: null
+  },
+  {
+    id: "mar21-d",
+    guide: "mar21",
+    category: "brand",
+    title: "Luxury Ad + Global Localizer",
+    description: "Shoot a premium product ad, then adapt the scene and styling for any target market.",
+    variables: ["[COUNTRY]"],
+    promptText: `Design a sophisticated promotional visual for a premium leather handbag brand named "Aurelio". The composition should feel refined and upscale, featuring an elegant structured leather handbag placed prominently against a dark, minimal backdrop. Use stylish fashion-style lighting that accentuates the shape, material, and surface details of the product. Pair it with tasteful, modern typography and a clean editorial layout. The final image should resemble a high-end commercial campaign—polished, atmospheric, and captured with the realism and detail of luxury product photography suitable for a high-end magazine advertisement or editorial campaign. Aspect ratio 16:9.`,
+    editPrompt: `Using the provided reference image as the original advertisement, generate a localized version of the same ad for the [COUNTRY] market. Preserve the original layout, product presentation, and brand identity from the reference image while adapting the advertisement so it feels culturally authentic. Translate all visible text into the appropriate local language and adjust typography, color palette, and visual styling to match luxury advertising aesthetics typical for that region. The final result should look like the same campaign redesigned for a premium fashion or lifestyle magazine audience in the country stated above, maintaining the original visual concept while achieving ultra-realistic commercial design quality.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Luxury Handbag Promotional Visual prompt. Generate.", "Upload the result, then paste the Global Ad Localizer prompt and replace [COUNTRY]. Generate.", "Repeat with different countries for a full international campaign."],
+    examples: [
+      { label: "France", text: "Text in French, refined Parisian luxury aesthetic" },
+      { label: "Japan", text: "Japanese typography, minimalist zen-inspired palette" },
+      { label: "South Korea", text: "Korean text, K-beauty influenced styling" }
+    ],
+    customTabs: { EDIT: "Global Ad Localizer" },
+    workflowParts: ["IMG", "EDIT"]
+  },
+  {
+    id: "mar28-d",
+    guide: "mar28",
+    category: "people",
+    title: "The Branding Magazine",
+    description: "Shoot a studio editorial portrait holding an open branded magazine, then animate a head raise with tagline delivery.",
+    variables: ["[BRAND NAME]", "[COAT COLOR]", "[SHIRT COLOR]", "[BACKDROP]"],
+    promptText: `A premium studio-lit close-up of a person holding an open [BRAND NAME] magazine near the lens, positioning both the interior spread and the subject's shocked facial expression in the immediate foreground. The subject's eyes are wide, mouth slightly open in astonishment, as if reacting to something extraordinary inside the pages. Captured with a crisp editorial lens to achieve a dynamic, immersive, and emotionally engaging aesthetic. The subject is styled in a lustrous [COAT COLOR] quilted puffer coat influenced by [BRAND_NAME] aesthetics, worn over a [SHIRT COLOR] top. Background: a [BACKDROP] gradient coordinated with [BRAND] hues. Soft cinematic lighting, subtle shadowing for depth, editorial approach with slightly muted tones but a crisp feel. High-definition clarity, photographic realism. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste The Branding Magazine prompt and fill in brand variables. Generate.", "For the video: paste The Branding Magazine video prompt with your tagline."],
+    examples: [
+      { label: "The AI Garage", text: "Electric graphite coat, charcoal-to-neon backdrop" },
+      { label: "Adidas", text: "Dark urban palette, sporty editorial styling" },
+      { label: "Fanta", text: "Orange coat, bright playful backdrop" }
+    ],
+        videoPrompt: `The subject slowly raises their head and looks directly into the camera, maintaining calm eye contact. The subject delivers a clear branded line for [BRAND NAME]. The voice is natural, confident, and slightly inspired. Soft cinematic lighting highlights natural skin texture. The camera performs a subtle forward glide, maintaining sharp focus on the eyes.`,
+workflowParts: ["IMG", "VID"]
+  },
+  {
+    id: "mar28-f",
+    guide: "mar28",
+    category: "food",
+    title: "Umami Minimalist",
+    description: "Shoot a burger as a clean product photo, then explode the ingredients into a floating infographic.",
+    variables: [],
+    promptText: `A high-quality, professional product photograph of a perfectly assembled gourmet cheeseburger with a glossy brioche bun, melted aged cheddar, crisp lettuce, and a juicy seared beef patty. Minimalist style, shot against a pure solid white background with soft natural shadows. Ultra-sharp macro focus, clean premium food editorial aesthetic. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Umami Minimalist prompt to generate the assembled burger. Generate.", "Paste the Deconstruct prompt for the exploded ingredient stack. Generate.", "Open AI video tool. Upload the assembled burger as the first frame and the deconstructed stack as the last frame.", "Paste the Umami Minimalist Video prompt."],
+    examples: [{ label: "Gourmet Cheeseburger", text: "Assembled product shot → exploded infographic with floating brioche, lettuce, cheddar, beef, tomato, sesame seeds — labels glide in" }],
+        videoPrompt: `First frame: assembled burger. Last frame: deconstructed floating stack. Action: Camera pulls back as burger components rise vertically. Transformation: Cheese stretches into dynamic ribbons; steam becomes volumetric mist; bun rotates slowly. Emergence: Condiment droplets materialize mid-stack. UI Integration: Clean infographic labels glide in to identify each floating ingredient. Style: Transition to high-key macro studio white aesthetic.`,
+workflowParts: ["IMG", "VID"]
+  },
+  {
+    id: "apr09-d",
+    guide: "apr09",
+    category: "people",
+    personalPhoto: true,
+    title: "The Branding Neon Billboard",
+    description: "Shoot a nighttime brand portrait under a glowing neon sign, then animate a gaze-lower with tagline delivery.",
+    variables: ["[BRAND]", "[COLOR]", "[SHIRT COLOR]", "[GRADIENT COLOR]"],
+    promptText: `A cinematic nighttime portrait of a person standing beneath a massive glowing [BRAND] neon billboard in a futuristic urban setting. Vibrant neon reflections cast dynamic color gradients across the subject's face and outfit. The subject wears a modern [COLOR] streetwear look inspired by [BRAND], layered over a [SHIRT COLOR] inner piece. Background features a sleek cityscape with a subtle [GRADIENT COLOR] glow aligned with [BRAND] tones. Cinematic neon lighting creates glossy reflections, soft atmospheric haze, and luminous highlights that sculpt facial features. Editorial high-fashion composition with ultra-clean commercial clarity. Facial identity must match the provided reference exactly — natural skin texture, accurate anatomy, no stylization. Ultra-high-definition, photorealism, premium campaign quality. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste The Branding Neon Billboard prompt and fill in brand variables. Generate.", "For the video: paste the video prompt with your tagline."],
+    examples: [
+      { label: "The AI Garage", text: "Midnight blue streetwear, cyan-to-violet backdrop" },
+      { label: "Starbucks", text: "Green neon against city haze" },
+      { label: "Samsung", text: "Futuristic Korean cityscape energy" }
+    ],
+        videoPrompt: `The subject slowly lowers their gaze from the glowing [BRAND] neon billboard and looks directly into the camera with calm confidence. The camera performs a very slow, subtle cinematic push-in starting from the first frame, ensuring both the illuminated [BRAND] billboard and the subject's face remain clearly visible and legible throughout the entire shot. Neon reflections softly animate across the subject's face and outfit. Lighting remains premium and consistent, preserving sharp facial detail and strong brand readability. The final frame holds briefly with balanced composition — the subject's face and the brand signage both prominently visible and in focus.`,
+workflowParts: ["IMG", "VID"]
+  },
+  {
+    id: "apr25-4",
+    guide: "apr25",
+    category: "brand",
+    title: "Universal Product Branding",
+    description: "Build a full cinematic commercial scene around any product, with the environment matched to it.",
+    variables: ["[TAGLINE]"],
+    promptText: `Create a cinematic, high-end branding visual featuring the uploaded product as the central focus. Place the product in a visually striking environment inspired by its identity, category, and emotional positioning (e.g., futuristic, luxury, natural, minimal, or urban). The product should be perfectly lit with premium commercial lighting — crisp highlights, soft shadows, and realistic reflections that enhance material quality. Subtle environmental effects (light rays, reflections, particles, or atmosphere) should support the product without overpowering it. Integrate the tagline: [TAGLINE] into the scene using clean, modern typography — placed naturally (floating, projected, or embedded in the environment). Composition should feel like a premium campaign: balanced framing, strong depth-of-field, and clear visual hierarchy with the product as the hero. Ultra-realistic materials, sharp focus, cinematic color grading, ultra-high-definition, luxury commercial quality. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your product reference image.", "Paste the Universal Branding prompt.", "Replace [TAGLINE] with your chosen tagline.", "Click Generate."],
+    examples: [
+      { label: "Natural skincare / \"Glow the Natural Way\"", text: "Warm canyon light, stone surface, premium highlights" },
+      { label: "Camera / \"Capture Every Detail\"", text: "High-floor city skyline, sleek dark surface, sharp editorial lighting" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "may14-4",
+    guide: "may14",
+    category: "brand",
+    title: "DreamState Product Ad",
+    description: "Set any product inside a surreal dreamscape ad, then rebuild the scene for a different country.",
+    variables: ["[BRAND_NAME]", "[COUNTRY]"],
+    promptText: `Create a surreal, dreamlike advertisement for [BRAND_NAME] using the uploaded product as the hero. The product should float or exist in an ethereal, abstract environment — soft light trails, depth layering, and atmospheric elements building around it. The product itself remains completely untouched and photorealistic while the world around it transforms into a dreamlike visual. Style: surreal advertising, soft cinematic light, abstract atmosphere, high-end commercial quality. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your product reference image.", "Paste the DreamState Ad Generator prompt and replace [BRAND_NAME]. Generate.", "In the same chat, paste the Dream Adapter prompt and replace [COUNTRY]. Generate.", "Repeat Step 4 for each additional target country."],
+    examples: [
+      { label: "Arvon watch — France", text: "Vintage map motifs, navigator instruments, tagline in French" },
+      { label: "Arvon watch — Japan", text: "Celestial blue atmosphere, clockwork gears, Japanese typography" },
+      { label: "Arvon watch — USA", text: "Eagle wings, compass, deeper contrast, English tagline" }
+    ],
+    workflowParts: ["IMG"]
+  },
+  {
+    id: "may14-6",
+    guide: "may14",
+    category: "brand",
+    title: "Brand Minimal → Premium",
+    description: "Move a product from a plain setup into a luxury scene, then animate the transition.",
+    variables: ["[BRAND_NAME]"],
+    promptText: `Using the provided reference image as the product or brand asset, create a cinematic scene for [BRAND_NAME] where everything feels premium—refined materials, elegant lighting, and high-end composition. The reference image should remain clearly recognizable while being elevated into a luxury setting. Style: cinematic, luxury aesthetic, soft lighting, high detail. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your product reference image.", "Paste the Premium Scene prompt and replace [BRAND_NAME]. Generate.", "In the same chat, paste the Basic Scene prompt and generate.", "Open AI video tool. Upload the Basic Scene as the first frame and the Premium Scene as the last frame.", "Paste the Transition video prompt and click Generate."],
+    examples: [{ label: "Kixora sneaker", text: "Basic: plain wooden surface, flat light. Premium: dark marble surface, sculpted directional lighting, gold brand card" }],
+        editPrompt: `Using the same reference image, create the same [BRAND_NAME] scene but in a basic, minimal form — simple setup, no premium elements, and a more ordinary look. Style: clean, simple, realistic.`,
+    videoPrompt: `Animate a smooth transition from the basic [BRAND_NAME] scene to the premium scene — materials upgrade, lighting improves, and details become more refined while keeping the reference image consistent. Style: cinematic, smooth transformation.`,
+workflowParts: ["IMG", "VID"]
+  },
+
+  {
+    id: "mar14-2",
+    guide: "mar14",
+    category: "people",
+    title: "Fusion Fashion Collage",
+    description: "Fuse a grid of random objects into a single high-end photorealistic fashion portrait.",
+    variables: [],
+    promptText: `Create a high-end studio fashion portrait where all listed objects are naturally integrated into one cohesive, photorealistic scene. Aspect ratio 16:9.`,
+    steps: ["Prepare a 4×4 (or similar) grid image of random objects.", "Open AI image tool and click Create Image.", "Upload the grid image.", "Paste the Fusion Fashion Collage prompt.", "Click Generate."],
+    examples: [{ label: "Cap, headphones, sneakers, dinosaur toy, lollipop", text: "Editorial fashion portrait where every object is worn, held, or interacted with — no floating props" }],
+    workflowParts: null
+  },
+  {
+    id: "mar21-i",
+    guide: "mar21",
+    category: "people",
+    personalPhoto: true,
+    title: "Historical Era Transformation",
+    description: "Show the same face across multiple historical eras in a grid, styled beyond simple costume changes.",
+    variables: [],
+    promptText: `Create a visual transformation grid using the uploaded reference image of the person where each panel shows the subject styled as a character from different historical periods, while maintaining recognizable facial features so viewers can easily see how the same person appears across different eras; style: cinematic historical photography with authentic costumes and environments, dramatic period-appropriate lighting, and photorealistic detail. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Historical Era Transformation Generator prompt.", "Click Generate."],
+    examples: [{ label: "Multi-era grid", text: "Victorian (lace, dark wood), Renaissance (oil painting lighting), Ancient Rome (marble columns), 1920s (art deco framing)" }],
+    workflowParts: null
+  },
+  {
+    id: "mar21-j",
+    guide: "mar21",
+    category: "people",
+    personalPhoto: true,
+    title: "Personal Fitness Transformation",
+    description: "Show a before-and-after fitness transformation side by side, with posture, clothing, and setting all adjusted.",
+    variables: ["[CURRENT_STATE]", "[FUTURE_FITNESS_GOAL]"],
+    promptText: `Create a transformation visualization using the uploaded reference image of the person, showing two versions of the same subject representing [CURRENT_STATE] and [FUTURE_FITNESS_GOAL], with subtle visual cues such as improved posture, athletic clothing, and confident body language to represent personal growth; style: realistic fitness photography. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Personal Fitness Transformation prompt.", "Replace [CURRENT_STATE] and [FUTURE_FITNESS_GOAL].", "Click Generate."],
+    examples: [{ label: "Beginner → Gym Athlete", text: "Same face, posture upright, clothing athletic, background shifts from street to gym" }],
+    workflowParts: null
+  },
+  {
+    id: "apr09-c",
+    guide: "apr09",
+    category: "people",
+    title: "Comic Legend Panel",
+    description: "Turn any famous person into a heroic comic book character, complete with background, props, and a quote.",
+    variables: ["[FAMOUS PERSON]"],
+    promptText: `Create a stylized comic-book illustration of [FAMOUS PERSON] portrayed as the central heroic character. The scene should reflect their real-life personality, era, and field of influence through symbolic background elements and visual storytelling details. Use dynamic comic panel composition, bold ink outlines, halftone shading, expressive facial features, and dramatic cinematic lighting. Include subtle contextual props or scenery connected to their legacy. Add a short, authentic inspirational quote from [FAMOUS PERSON] inside a classic comic speech bubble or caption box. Use hand-lettered comic typography style. Emphasize emotional impact and iconic recognition. Color palette should be vibrant yet cohesive, with high contrast and retro comic texture. Slight paper grain and print imperfections for vintage realism. Ultra-detailed, high-resolution, modern graphic novel aesthetic, cinematic framing. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Comic Legend Panel prompt.", "Replace [FAMOUS PERSON] (used twice in the prompt).", "Click Generate."],
+    examples: [
+      { label: "Albert Einstein", text: "Chalkboard, E=mc², globe, violin — quote in speech bubble" },
+      { label: "Snoop Dogg", text: "LBC street energy, California sunset palette, G-funk lettering" },
+      { label: "Cristiano Ronaldo", text: "Stadium floodlights, CR7 kit, ball mid-air, celebration energy" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "apr09-e",
+    guide: "apr09",
+    category: "people",
+    personalPhoto: true,
+    title: "Renaissance Reality Portrait",
+    description: "Render a portrait as a 16th-century Flemish oil painting, with a parchment speech bubble and the face unchanged.",
+    variables: ["[TEXT]"],
+    promptText: `A hyper-realistic classical Renaissance oil painting created from the provided reference image, rendered in authentic 16th-century Flemish portrait style. The subject wears period-accurate aristocratic clothing — rich velvet, embroidered collar, subtle jeweled details — while the face remains an exact photorealistic likeness with no stylization. Serious noble expression with a faint modern self-aware hint. Cinematic 16:9 composition, dark atmospheric painterly background, cracked oil texture, dramatic Rembrandt-style side lighting, ultra-detailed Renaissance realism. Add a parchment-style Renaissance speech bubble with elegant ink lettering containing: [TEXT]`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Renaissance Reality Portrait prompt.", "Replace [TEXT] with your speech bubble text.", "Click Generate."],
+    examples: [{ label: "\"I work from castle yet still attend pointless meetings.\"", text: "Embroidered velvet collar, dark atmospheric background, cracked oil texture, Rembrandt lighting" }],
+    workflowParts: null
+  },
+  {
+    id: "apr09-f",
+    guide: "apr09",
+    category: "people",
+    personalPhoto: true,
+    title: "Dream Multiverse Grid",
+    description: "Show the same person living four different dream lifestyles in one cinematic 2×2 grid.",
+    imageClass: "",
+    variables: [],
+    promptText: `Create a cinematic 16:9 horizontal 2x2 grid composition featuring the person from the provided reference image living four different dream lifestyles. The face must match the reference exactly — photorealistic likeness, natural skin texture, correct anatomy, no stylization.\nTop-left: Luxury beach sunrise lifestyle near a modern villa.\nTop-right: Futuristic penthouse workspace overlooking a neon city.\nBottom-left: Peaceful mountain cabin surrounded by nature.\nBottom-right: High-energy modern creative studio environment.\nConsistent identity across all scenes, wardrobe adapted naturally to each lifestyle. Soft cinematic color grading, premium editorial realism, ultra-detailed environments, high-end commercial photography quality.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Dream Multiverse Grid prompt.", "Click Generate."],
+    examples: [{ label: "Four lifestyles", text: "Beach villa, neon penthouse, mountain cabin, creative studio — same face in all panels" }],
+    workflowParts: null
+  },
+  {
+    id: "apr25-5",
+    guide: "apr25",
+    category: "people",
+    personalPhoto: true,
+    title: "Mirror Style Shift",
+    description: "Set a portrait in front of a mirror, everyday clothing outside and high fashion reflected within.",
+    variables: ["[FASHION STYLE]"],
+    promptText: `Cinematic 16:9 wide shot of the person standing in front of a full-length mirror. Outside: simple everyday outfit. Inside reflection: high-fashion [FASHION STYLE] look. Same face, perfectly matched — photorealistic, no stylization. Clean studio, balanced composition, soft cinematic lighting, full-body.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference photo.", "Paste the Mirror Style Shift prompt. Replace [FASHION STYLE]. Generate.", "In the same chat, paste the Deconstruct Reset prompt and generate.", "Open AI video tool. Upload the Neutral Reset as the first frame and the Style Shift as the last frame.", "Paste the Personal Style Awakening video prompt and click Generate."],
+    examples: [],
+        editPrompt: `Same 16:9 mirror scene. Remove the [FASHION STYLE] style shift — both the person and reflection wear the same simple everyday outfit and have the same simple pose. Hyper-realistic stillness.`,
+    videoPrompt: `16:9 mirror scene. Begin with both the person and reflection in a simple outfit. The transformation happens only in the mirror — the reflection evolves into a high-fashion [FASHION STYLE] look (fabric, structure, details). The real person remains unchanged until the final moment, then subtly aligns to match the reflection. Slow cinematic push-in, smooth magical transformation, consistent lighting and framing.`,
+workflowParts: ["IMG", "VID"]
+  },
+  {
+    id: "apr25-6",
+    guide: "apr25",
+    category: "people",
+    personalPhoto: true,
+    title: "Video Game Character",
+    description: "Rebuild a portrait as a AAA video game character, with a UI overlay, ability icons, stats, and a dialogue box.",
+    variables: ["[TEXT]"],
+    promptText: `Add subtle game UI elements around the frame: character name, level, class, stats, or ability icons. Include a clean in-game style text label or dialogue box containing: [TEXT]. Cinematic lighting, depth-of-field, ultra-detailed textures, AAA game realism. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Video Game Character prompt.", "Replace [TEXT] with your dialogue line.", "Click Generate."],
+    examples: [{ label: "\"The Journey Begins\"", text: "Photorealistic skin, armor layers, ability icons, neon-lit urban environment, dialogue box at bottom" }],
+    workflowParts: null
+  },
+  {
+    id: "apr25-7",
+    guide: "apr25",
+    category: "people",
+    personalPhoto: true,
+    title: "Personal Money Evolution",
+    description: "Show the same person across four financial stages in one cinematic 2×2 grid.",
+    imageClass: "",
+    variables: [],
+    promptText: `Create a cinematic 2×2 grid showing the reference person attached at four financial stages. Top-left: Broke / starting phase (small room, laptop). Top-right: Stable income (clean workspace, calm life). Bottom-left: Growing success (modern apartment, productivity setup). Bottom-right: Wealth lifestyle (luxury travel, freedom). Same face across all, subtle emotional progression. Realistic, aspirational. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Personal Money Evolution prompt.", "Click Generate."],
+    examples: [
+      { label: "Top-left — Starting phase", text: "Small room, single lamp, laptop, early morning energy" },
+      { label: "Bottom-right — Wealth stage", text: "Open water, warm light, full freedom" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "may14-5",
+    guide: "may14",
+    category: "people",
+    personalPhoto: true,
+    title: "Career Hero Comic",
+    description: "Turn a portrait into a comic book hero built around the person's occupation, with a matching tagline.",
+    variables: ["[OCCUPATION]"],
+    promptText: `Using the provided reference image of a person, transform them into a comic-style version of a [OCCUPATION] hero. Keep their face and pose recognizable, but redesign their outfit, tools, and environment to match the occupation in a bold, cinematic way. Place them in an action-packed scene relevant to the role (e.g., surgeon in an intense operating room moment, firefighter in flames, pilot mid-flight). Add comic elements like motion lines, dramatic lighting, halftone textures, and bold ink outlines. Include a custom caption or tagline that fits the occupation (e.g., surgeon: "LIFE IN THEIR HANDS", firefighter: "RUNS INTO THE FLAMES", pilot: "SKY IS NOT THE LIMIT"), designed in a strong comic-style font integrated into the scene. Style: modern comic book, high contrast, vibrant colours, dynamic composition, ultra-detailed. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Career Hero Comic prompt and replace [OCCUPATION].", "Click Generate."],
+    examples: [
+      { label: "Firefighter", text: "Charges through flames, full gear, tagline: \"RUNS INTO THE FLAMES\"" },
+      { label: "Lawyer", text: "Courtroom energy, gavel mid-air, scales of justice, tagline: \"IN THE DEFENSE OF TRUTH\"" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "may14-9",
+    guide: "may14",
+    category: "people",
+    personalPhoto: true,
+    title: "Life Paths Simulator",
+    description: "Show one person living several completely different lives, laid out in a grid.",
+    variables: [],
+    promptText: `Create a visual transformation grid using the uploaded reference image of a person, where each panel represents the subject living a different life path or profession (artist, athlete, scientist, explorer, etc.).\nMaintain facial consistency while adapting clothing, posture, environment, and mood to match each role. Each panel should tell a small story about that version of life.\nStyle: cinematic lifestyle photography, realistic environments, storytelling composition, high detail. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Life Paths Simulator prompt.", "Click Generate."],
+    examples: [],
+    workflowParts: null
+  },
+
+  {
+    id: "mar14-10",
+    guide: "mar14",
+    category: "scifi",
+    title: "Living Headlines Universe",
+    description: "Turn a newspaper's headlines into 3D dioramas rising off the page, each its own miniature world.",
+    variables: ["[HEADLINE EVENT]"],
+    promptText: `Cinematic 3D tableau: a large broadsheet newspaper caught mid-unfold, where printed headlines physically transform into the stories they report. The event [HEADLINE EVENT] materializes in miniature across the page, with lead articles rising as dimensional dioramas extending beyond the paper's surface. Photographs break free from their frames into full three-dimensional scenes. Columns of text assemble into towering cityscapes of information. The opinion section becomes animated debates, and classified ads morph into intimate human snapshots.\nEach newspaper section forms its own distinct micro-world — sports as a packed arena, finance as a bustling trading floor, obituaries as a quiet memorial garden. Beneath it all, yesterday's headlines linger faintly as a translucent archival layer. The scent of ink feels almost tangible in the air.\nA newsstand rests at the edge of the frame in soft morning light, subtle coffee steam drifting. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Living Headlines Universe prompt.", "Replace [HEADLINE EVENT] with your chosen event.", "Click Generate."],
+    examples: [{ label: "The Titanic", text: "Front page with full 3D ocean scene, ship mid-sink, passengers as dimensional figures, headline engraved on the fold" }],
+    workflowParts: null
+  },
+  {
+    id: "mar21-c",
+    guide: "mar21",
+    category: "scifi",
+    title: "Notification Storm",
+    description: "Spill a smartphone's social media notifications out into the real world around it.",
+    variables: ["[SOCIAL MEDIA PLATFORM]"],
+    promptText: `A cinematic scene where a modern smartphone lies on a desk. The screen bursts open as tens of [SOCIAL MEDIA PLATFORM] notifications explode outward into the real world. Floating icons swirl around the phone like a digital storm. Each icon glows in vibrant platform colors while casting soft light reflections on the table surface. Tiny glowing notification cards and interface elements appear within the storm. Hyper-detailed lighting, dynamic motion blur, glossy reflections, futuristic interface glow, ultra-realistic digital aesthetic. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Notification Storm prompt and replace [SOCIAL MEDIA PLATFORM]. Generate.", "In the same chat, paste the Deconstruct prompt for a blank phone. Generate.", "Open AI video tool. Upload the blank phone as Frame 1 and the notification storm as the Final Frame.", "Paste the Animate video prompt."],
+    examples: [{ label: "YouTube", text: "Red play buttons, bell icons, subscriber count cards, comment bubbles exploding from phone" }],
+        editPrompt: `Create the same scene composition but in its inactive state. A cinematic scene where a modern smartphone lies on a desk, viewed from the same camera angle and perspective as the final composition. The phone screen is completely blank and inactive, showing no [SOCIAL MEDIA PLATFORM] notifications, icons, interface elements, or visual effects. The desk surface remains clean with soft studio lighting and subtle reflections from ambient light. The environment is calm and minimal — same glossy reflections, same lighting setup, no floating icons, no digital interface elements, no motion. Photorealistic product photography aesthetic, ultra-detailed materials, soft shadows, cinematic lighting.`,
+    videoPrompt: `Use the blank phone image as the first frame and the [SOCIAL MEDIA PLATFORM] notification storm image as the last frame. Maintain the same camera angle, phone position, desk surface, and lighting. The phone vibrates and the first [SOCIAL MEDIA PLATFORM] notifications appear on the screen. Icons begin lifting off the display and multiplying, swirling upward into the air. The number of notifications rapidly increases, forming a glowing vortex above the phone until the scene matches the final notification storm image. Smooth cinematic transformation.`,
+workflowParts: ["IMG", "EDIT", "VID"]
+  },
+  {
+    id: "mar21-k",
+    guide: "mar21",
+    category: "scifi",
+    title: "Floating Object Viral Scene",
+    description: "Arrange objects levitating in symmetry around a central subject for a surreal flatlay.",
+    variables: ["[THEME]", "[MAIN_OBJECT]"],
+    promptText: `Create a visually satisfying composition where objects related to [THEME] float weightlessly in mid-air around [MAIN_OBJECT], arranged symmetrically with soft lighting and subtle shadows to create a surreal but aesthetically pleasing scene; style: modern minimal photography with vibrant colors. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Floating Object Viral Scene prompt.", "Replace [THEME] and [MAIN_OBJECT].", "Click Generate."],
+    examples: [
+      { label: "Coffee culture / ceramic mug", text: "Beans, grinder, sugar cubes, spoon floating around a blue ceramic mug" },
+      { label: "Travel / vintage suitcase", text: "Globe, binoculars, camera, hat, postcards levitating around the suitcase" },
+      { label: "Music / headphones", text: "Instruments, cables, vinyl records, metronome arranged around headphones" }
+    ],
+    workflowParts: null
+  },
+  {
+    id: "mar28-a",
+    guide: "mar28",
+    category: "scifi",
+    title: "Helix Civilization Genesis",
+    description: "Build a megacity shaped like a DNA double helix, then animate a descent from orbit to street level.",
+    variables: ["[CITY]", "[Main Landmark]"],
+    promptText: `A monumental DNA double helix floats in a cosmic void, viewed from a precise high-angle macro perspective. The spiral strands are composed of luminous crystalline biomaterials with subtle bio-luminescent energy flowing along their structure. At the level corresponding to [CITY], base pair platforms begin to expand outward into a vertically layered futuristic metropolis suspended between the twin helices. [Main Landmark] is reconstructed as a monumental parametric structure integrated into the genetic lattice. Atmospheric nebula haze, soft cosmic illumination, ultra-detailed molecular surface realism, cinematic macro depth, 4:3 ratio.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Helix Civilization Genesis prompt and replace [CITY] and [Main Landmark]. Generate.", "In the same session, paste the Genetic Urban Habitat (street level) prompt. Generate.", "Open AI video tool. Upload the orbital view as the first frame and the street level as the last frame.", "Paste the Genetic Spiral Descent video prompt."],
+    examples: [
+      { label: "Paris / Eiffel Tower", text: "Parametric Eiffel Tower integrated into crystalline DNA lattice" },
+      { label: "New York / Statue of Liberty", text: "Bio-luminescent Liberty rebuilt as part of the genetic structure" }
+    ],
+        videoPrompt: `The camera begins above the rotating DNA helix above [CITY] and dives into the spiral groove. As it descends, molecular textures scale up and transform into architectural material detail. The helix rotation slows perceptually while base pair platforms expand into massive urban districts. The cosmic void transitions into a breathable atmospheric environment. The perspective tilts fluidly from macro orbital observation into immersive street-level motion. [Main Landmark] is visible throughout the descent. Bio-luminescent energy pathways become urban transportation systems as the camera stabilizes into a smooth cinematic tracking shot.`,
+editPrompt: `The camera now exists inside the DNA-based megacity at pedestrian level. Architectural districts extend across the horizontal base pair platforms, connected by elegant bridges that wrap around the helix strands. Bio-luminescent energy streams flow beneath transparent surfaces. Citizens move naturally within this advanced bio-engineered environment. [Main Landmark] towers nearby as a fusion of organic growth and high-precision engineering. Lighting preserves the same cosmic-biological glow and atmospheric softness from the macro scene. Ultra-cinematic depth of field, hyper-detailed futuristic realism.`,
+    customTabs: { EDIT: "Street Level Image" },
+    workflowParts: ["IMG", "EDIT", "VID"]
+  },
+  {
+    id: "may14-11",
+    guide: "may14",
+    category: "brand",
+    title: "Starter Pack",
+    description: "Arrange the defining objects of any theme into a clean, organized flat-lay.",
+    imageClass: "",
+    variables: ["[THEME]"],
+    promptText: `Create a visually satisfying composition representing a [THEME] starter pack, where all essential items are neatly arranged on a flat surface (table, floor, or background) in a clean and aesthetic layout. Objects should be carefully organized (grid, symmetrical, or flat-lay style), with each item clearly visible and spaced evenly. Include iconic and recognizable elements that define the theme.\nUse soft lighting, subtle shadows, and a minimal background to create a polished, modern look. The composition should feel organized, relatable, and visually pleasing.\nStyle: flat-lay photography, minimal aesthetic, soft shadows, clean composition, high detail. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Starter Pack prompt.", "Replace [THEME] with your chosen theme.", "Click Generate."],
+    examples: [
+      { label: "Tennis Player", text: "Racket, ball tin, visor, white polo, navy shorts, towel, sunscreen on warm wood" },
+      { label: "Digital Nomad", text: "MacBook, passport, noise-cancelling headphones, portable charger, travel journal, coffee" },
+      { label: "Home Cooking", text: "Cast iron skillet, cutting board, fresh herbs, olive oil, vegetables, recipe notebook" }
+    ],
+    workflowParts: null
+  },
+
+  {
+    id: "may16-1",
+    guide: "may16",
+    category: "people",
+    personalPhoto: true,
+    title: "Santorini Summer Dress",
+    description: "Swap a portrait's outfit and setting for a travel destination, keeping the face and pose unchanged.",
+    variables: [],
+    promptText: `Make the woman wear a classy white summer dress in Santorini, Greece. Keep her facial features, expression, and pose consistent. Replace the background with white buildings, blue domes, sea views, and bright Mediterranean lighting. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Upload your reference portrait photo.", "Paste the Santorini Summer Dress prompt.", "Click Generate."],
+    examples: [],
+    workflowParts: null
+  },
+  {
+    id: "may16-4",
+    guide: "may16",
+    category: "people",
+    title: "Dynamic Side-View Portrait",
+    description: "Capture an editorial portrait in motion, walking or turning, with natural movement and fashion styling.",
+    variables: [],
+    promptText: `Create a realistic portrait of a stylish woman in side view, captured in a dynamic action pose. Show her in profile with natural body movement, as if she is walking confidently, turning quickly, or moving with purpose. Keep the composition elegant and visually striking, with realistic facial features, natural makeup, detailed skin texture, and soft cinematic lighting. Use a fashionable outfit, a refined background, and a high-end editorial photography style with a cohesive color palette and a sophisticated atmosphere. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Dynamic Side-View Portrait prompt.", "Click Generate."],
+    examples: [],
+    workflowParts: null
+  },
+  {
+    id: "may16-7",
+    guide: "may16",
+    category: "people",
+    title: "Solopreneurship Infographic",
+    description: "Lay out a solopreneurship infographic with a central founder, insight cards, icons, and charts.",
+    variables: [],
+    promptText: `Create a clean modern infographic about solopreneurship for social media, business education, and personal brand content. Use the title text "SOLOPRENEURSHIP" at the top in large bold readable typography, with a short subtitle: "One Person. Many Systems." Let the design intelligently generate its own visual categories, insights, icons, labels, and content blocks about building and running a one-person business. Show a central solo founder at a laptop as the hero focal point, surrounded by organized infographic cards. Use a premium editorial layout with clean hierarchy, generous white space, rounded cards, subtle arrows, neat data-style accents, simple charts, and polished vector icons. Aspect ratio 4:5.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Solopreneurship Infographic prompt as-is.", "Click Generate."],
+    examples: [],
+    workflowParts: null
+  },
+  {
+    id: "may16-10",
+    guide: "may16",
+    category: "brand",
+    title: "Frosted Glass Earbuds",
+    description: "Shoot wireless earbuds in a frosted glass case on dark satin, lit with studio spotlighting and condensation detail.",
+    variables: [],
+    promptText: `Premium wireless earbuds product photo inside a translucent frosted glass charging case, placed on a dark satin fabric surface with soft studio spotlighting, realistic reflections, subtle condensation on the case, brushed aluminum hinge detail, warm rim light along the edges, clean shadow falloff, shallow depth of field, macro product photography style, luxury tech advertisement look, crisp material texture, minimal modern composition, no clutter, no watermark. Aspect ratio 16:9.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste the Frosted Glass Earbuds prompt as-is.", "Click Generate."],
+    examples: [],
+    workflowParts: null
+  },
+  {
+    id: "may16-11",
+    guide: "may16",
+    category: "food",
+    title: "The Table House Menu",
+    description: "Lay out a restaurant menu on textured cream paper with starters, mains, desserts, and chef specials.",
+    variables: [],
+    promptText: `Create a detailed premium restaurant menu design for a modern bistro, shown as a realistic printed menu on textured cream paper. Use the title "THE TABLE HOUSE" at the top with elegant readable typography and a refined subtitle: "Seasonal Kitchen & Bar". Let the AI generate a polished full menu layout with organized sections for starters, mains, desserts, drinks, and chef specials, using concise realistic dish names, short descriptions, and clean price formatting. The design should feel upscale, warm, and editorial. Aspect ratio 4:5.`,
+    steps: ["Open AI image tool and click Create Image.", "Paste The Table House Menu prompt as-is.", "Click Generate."],
+    examples: [],
+    workflowParts: null
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function fmtDate(s){ return new Date(s+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); }
+function fmtShort(s){ return new Date(s+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function getCat(id){ if(id===PERSON_CAT.id) return PERSON_CAT; return CATEGORIES.find(function(c){ return c.id===id; }) || CATEGORIES[0]; }
+function getGuide(id){ return GUIDES.find(function(g){ return g.id===id; }); }
+function escH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function mkEl(tag,cls){ var e=document.createElement(tag||'div'); if(cls) e.className=cls; return e; }
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+var SQ  = '';
+var FT  = { type:'all', val:null };
+var AP  = null;   // active prompt — we attach _activeTab to this object
+var VV  = {};     // { varName: value }
+
+// ═══════════════════════════════════════════════════════════════════
+// WORKFLOW BADGE CONSTANTS
+// ═══════════════════════════════════════════════════════════════════
+var WF_ICONS = {
+  IMG:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  EDIT: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  VID:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'
+};
+var WF_CLS = { IMG:'wt-i', EDIT:'wt-e', VID:'wt-v' };
+var WF_LBL = { IMG:'IMAGE', EDIT:'EDIT', VID:'VIDEO' };
+
+function wfBadges(p){
+  var parts = (p.workflowParts && p.workflowParts.length) ? p.workflowParts : ['IMG'];
+  var seen = {}, out = '';
+  parts.forEach(function(pt){
+    if(!seen[pt]){ seen[pt]=1; out += '<span class="wt '+(WF_CLS[pt]||'wt-i')+'">'+(WF_ICONS[pt]||'')+' '+(WF_LBL[pt]||pt)+'</span>'; }
+  });
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FILTERING
+// ═══════════════════════════════════════════════════════════════════
+function getFiltered(){
+  var q = SQ.toLowerCase().trim();
+  var pool = PROMPTS.filter(function(p){ return p.category !== 'people'; });
+  if(q){
+    return pool.filter(function(p){
+      var c = getCat(p.category), g = getGuide(p.guide);
+      return p.title.toLowerCase().includes(q)
+          || p.description.toLowerCase().includes(q)
+          || p.promptText.toLowerCase().includes(q)
+          || p.variables.some(function(v){ return v.toLowerCase().includes(q); })
+          || (c && c.name.toLowerCase().includes(q))
+          || (g && g.title.toLowerCase().includes(q));
+    });
+  }
+  if(FT.type==='category') return pool.filter(function(p){ return p.category===FT.val; });
+  if(FT.type==='guide')    return pool.filter(function(p){ return p.guide===FT.val; });
+  return pool;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CATEGORY RIBBON
+// ═══════════════════════════════════════════════════════════════════
+function renderCats(){
+  var ribbon = document.getElementById('tb-cats');
+  if(!ribbon) return;
+  var allActive = FT.type === 'all';
+  var out = '<button class="cc'+(allActive?' active':'')+'"'
+    +' style="--cc:var(--a1)"'
+    +' onclick="setF(\x27all\x27,null)">All</button>';
+  CATEGORIES.forEach(function(c){
+    var active = FT.type==='category' && FT.val===c.id;
+    out += '<button class="cc'+(active?' active':'')+'"'
+      +' style="--cc:var(--a1)"'
+      +' onclick="setF(\x27category\x27,\x27'+c.id+'\x27)">'
+      +c.name+'</button>';
+  });
+  ribbon.innerHTML = out;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CARD HTML
+// ═══════════════════════════════════════════════════════════════════
+function cardHTML(p){
+  var c = getCat(p.category);
+  var imgCls   = 'card-img' + (p.imageClass ? ' '+p.imageClass : '');
+  var imgStrip = p.imageUrl
+    ? '<div class="'+imgCls+'"><img src="'+p.imageUrl+'" alt="'+escH(p.title)+'" loading="lazy"/></div>'
+    : '';
+  return '<div class="card" data-pid="'+escH(p.id)+'">'
+    +'<div class="cg"></div>'
+    +imgStrip
+    +'<div>'
+    +'<span class="c-cat" style="background:var(--a1)">'+c.name+'</span>'
+    +'<h4 class="c-title">'+escH(p.title)+'</h4>'
+    +'<p class="c-desc">'+escH(p.description)+'</p>'
+    +'<div class="wf-tags">'+wfBadges(p)+'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER CARDS
+// ═══════════════════════════════════════════════════════════════════
+function renderCards(){
+  var fl = getFiltered();
+  renderCats();
+
+  var pl = document.getElementById('plist');
+  if(!fl.length){
+    pl.innerHTML = '<div class="empty">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+      +'<h4>No prompts found</h4>'
+      +'<p>Try keywords like "miniature", "city", or "portrait".</p>'
+      +'<button class="rst-btn" onclick="clearAll()">Reset filters</button>'
+      +'</div>';
+    return;
+  }
+
+  if(FT.type==='category' && !SQ.trim()){
+    pl.innerHTML = '<div class="grid">'+fl.map(cardHTML).join('')+'</div>';
+    return;
+  }
+
+  var grp = {};
+  fl.forEach(function(p){ if(!grp[p.category]) grp[p.category]=[]; grp[p.category].push(p); });
+  var out = '<div style="display:flex;flex-direction:column;gap:38px">';
+  CATEGORIES.forEach(function(c){
+    var items = grp[c.id];
+    if(!items||!items.length) return;
+    out += '<div class="cat-sec"><div class="cat-hdr">'
+      +'<span class="cat-lbl" style="color:var(--a1)">'+c.name+'</span>'
+      +'<span class="cat-div"></span>'
+      +'</div><div class="grid">'+items.map(cardHTML).join('')+'</div></div>';
+  });
+  pl.innerHTML = out+'</div>';
+}
+
+// Event delegation for card clicks
+document.addEventListener('click', function(e){
+  var card = e.target.closest('[data-pid]');
+  if(card) openM(card.dataset.pid);
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// MODAL OPEN / CLOSE
+// ═══════════════════════════════════════════════════════════════════
+function openM(id){
+  AP = PROMPTS.find(function(p){ return p.id===id; });
+  if(!AP) return;
+  VV = {};
+  AP._activeTab = AP.promptText ? 'IMG' : (AP.editPrompt ? 'EDIT' : 'VID');
+  buildModal();
+  document.getElementById('mbk').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeM(){
+  document.getElementById('mbk').classList.remove('on');
+  document.body.style.overflow = '';
+  AP = null; VV = {};
+}
+
+function bkClick(e){
+  if(e.target === document.getElementById('mbk')) closeM();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BUILD MODAL — called on open and on every tab switch
+// ═══════════════════════════════════════════════════════════════════
+function buildModal(){
+  var p  = AP;
+  var c  = getCat(p.category);
+  var g  = getGuide(p.guide);
+  var ml = document.getElementById('ml');
+  var mr = document.getElementById('mr');
+
+  // Build tab list from available prompt fields
+  var tabs = [];
+  if(p.promptText)  tabs.push({ key:'IMG',  label:'Image Prompt', cls:'wt-i', color:'#3E6E8C', hint:'Paste into your AI image tool → Create Image' });
+  if(p.editPrompt)  tabs.push({ key:'EDIT', label:'Edit Prompt',  cls:'wt-e', color:'#9C6A3E', hint:'Paste in the same AI image tool chat as a follow-up edit' });
+  if(p.videoPrompt) tabs.push({ key:'VID',  label:'Video Prompt', cls:'wt-v', color:'#3E8368', hint:'Upload frames to your AI video tool, then paste this prompt' });
+  var isMulti = tabs.length > 1;
+
+  var activeTab = tabs.find(function(t){ return t.key === AP._activeTab; }) || tabs[0];
+
+  // ── LEFT PANEL ─────────────────────────────────────────────────
+  ml.innerHTML = '';
+
+  // Category tag
+  var ctag = mkEl('span','m-ctag');
+  ctag.textContent = c.name;
+  ctag.style.cssText = 'background:var(--a1)';
+  ml.appendChild(ctag);
+
+  // Title
+  var titleEl = mkEl('h3','m-title'); titleEl.textContent = p.title;
+  ml.appendChild(titleEl);
+
+  // Description
+  var descEl = mkEl('p','m-desc'); descEl.textContent = p.description;
+  ml.appendChild(descEl);
+
+  // Tab bar (multi-step only)
+  if(isMulti){
+    var tabBar = mkEl('div','tab-bar');
+    tabs.forEach(function(t, i){
+      var btn = mkEl('button','tab-btn'+(AP._activeTab===t.key?' tab-active':''));
+      if(AP._activeTab===t.key){
+        btn.style.cssText = 'border-color:'+t.color+';color:'+t.color+';background:'+t.color+'18';
+      }
+      var tabLabel = (p.customTabs && p.customTabs[t.key]) || t.label;
+      var num = mkEl('span','tab-num');
+      num.textContent = i+1;
+      if(AP._activeTab===t.key) num.style.background = t.color;
+      btn.appendChild(num);
+      btn.appendChild(document.createTextNode(' '+tabLabel));
+      (function(tab){ btn.addEventListener('click', function(){ AP._activeTab=tab.key; buildModal(); }); })(t);
+      tabBar.appendChild(btn);
+    });
+    ml.appendChild(tabBar);
+    var hint = mkEl('p','tab-hint'); hint.textContent = activeTab.hint;
+    ml.appendChild(hint);
+  }
+
+  // Variable inputs — show on ALL tabs, values carry across all prompts
+  if(p.variables.length > 0){
+    var vbox = mkEl('div','vbox');
+    var vlbl = mkEl('div','blbl');
+    vlbl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      +'<rect x="2" y="3" width="20" height="14" rx="2"/>'
+      +'<line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>'
+      +'</svg>Your Variables — applied to all prompts';
+    vbox.appendChild(vlbl);
+    p.variables.forEach(function(v, i){
+      var row = mkEl('div','vrow');
+      if(i>0) row.style.marginTop = '9px';
+      var lbl = mkEl('label','vlbl'); lbl.textContent = v;
+      row.appendChild(lbl);
+      var inp = mkEl('input','vi');
+      inp.type = 'text'; inp.placeholder = 'Enter value for '+v; inp.value = VV[v]||'';
+      (function(varName){ inp.addEventListener('input', function(){ VV[varName]=this.value; renderPrev(); }); })(v);
+      row.appendChild(inp); vbox.appendChild(row);
+    });
+    ml.appendChild(vbox);
+  }
+
+  // Preview
+  var prevWrap = mkEl('div','prev-wrap');
+  var prevLbl  = mkEl('div','prev-lbl');
+  prevLbl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+    +'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>'
+    +'<line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+    +(isMulti ? ((p.customTabs && p.customTabs[activeTab.key]) || activeTab.label)+' Preview' : 'Prompt Preview');
+  prevWrap.appendChild(prevLbl);
+  var prevBox = mkEl('div','prev'); prevBox.id = 'modal-prev';
+  prevWrap.appendChild(prevBox);
+  ml.appendChild(prevWrap);
+
+  // Copy button
+  var acts = mkEl('div','m-acts');
+  var cpBtn = mkEl('button','cpbtn idle'); cpBtn.id = 'cpbtn';
+  cpBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+    +'<rect x="9" y="9" width="13" height="13" rx="2"/>'
+    +'<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
+    +' Copy '+(isMulti ? ((p.customTabs && p.customTabs[activeTab.key]) || activeTab.label) : 'Completed Prompt');
+  cpBtn.addEventListener('click', doCopy);
+  acts.appendChild(cpBtn); ml.appendChild(acts);
+
+  // ── RIGHT PANEL ───────────────────────────────────────────────
+  mr.innerHTML = '';
+
+  if(p.steps && p.steps.length){
+    var sec = mkEl('div');
+    var hdr = mkEl('p','slbl'); hdr.textContent = 'Instructions';
+    sec.appendChild(hdr);
+    var ul = mkEl('ul','steps');
+    p.steps.forEach(function(s, i){
+      var li=mkEl('li','si'); var num=mkEl('span','sn'); num.textContent=i+1;
+      var txt=mkEl('span'); txt.textContent=s;
+      li.appendChild(num); li.appendChild(txt); ul.appendChild(li);
+    });
+    sec.appendChild(ul); mr.appendChild(sec);
+  }
+
+  renderPrev();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LIVE PREVIEW
+// ═══════════════════════════════════════════════════════════════════
+function renderPrev(){
+  var box = document.getElementById('modal-prev');
+  if(!box || !AP) return;
+  while(box.firstChild) box.removeChild(box.firstChild);
+
+  var activeKey = AP._activeTab || 'IMG';
+  var text = '';
+  if(activeKey==='IMG')  text = AP.promptText  || '';
+  if(activeKey==='EDIT') text = AP.editPrompt  || '';
+  if(activeKey==='VID')  text = AP.videoPrompt || '';
+
+  // Highlight variable tokens on ALL tabs — filled = green, empty = purple
+  if(!AP.variables.length){
+    box.textContent = text;
+    return;
+  }
+
+  // IMG with variables: highlight tokens
+  var varSet = {};
+  AP.variables.forEach(function(v){ varSet[v]=true; });
+  var escaped = AP.variables.map(function(v){ return v.replace(/[-[\]{}()*+?.,\\^$|#\s]/g,'\\$&'); });
+  var segs;
+  try { segs = text.split(new RegExp('('+escaped.join('|')+')', 'g')); }
+  catch(err){ box.textContent=text; return; }
+
+  segs.forEach(function(seg){
+    if(varSet[seg]){
+      var val=VV[seg], filled=val&&val.trim().length>0;
+      var sp=document.createElement('span');
+      sp.className=filled?'vtok f':'vtok e';
+      sp.textContent=filled?'['+val.trim()+']':seg;
+      box.appendChild(sp);
+    } else {
+      box.appendChild(document.createTextNode(seg));
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// COPY — compiles IMG prompt with variable substitution
+// ═══════════════════════════════════════════════════════════════════
+function doCopy(){
+  var activeKey = AP._activeTab || 'IMG';
+  var text = '';
+  if(activeKey==='IMG')  text = AP.promptText  || '';
+  if(activeKey==='EDIT') text = AP.editPrompt  || '';
+  if(activeKey==='VID')  text = AP.videoPrompt || '';
+
+  // Substitute variables into ALL tabs
+  AP.variables.forEach(function(v){
+    var val=VV[v];
+    if(val&&val.trim()){
+      var esc=v.replace(/[-[\]{}()*+?.,\\^$|#\s]/g,'\\$&');
+      text=text.replace(new RegExp(esc,'g'),'['+val.trim()+']');
+    }
+  });
+
+  navigator.clipboard.writeText(text).then(function(){
+    var b=document.getElementById('cpbtn'); if(!b) return;
+    b.className='cpbtn done';
+    b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      +'<polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    showToast('Copied to clipboard!');
+    setTimeout(function(){
+      var b2=document.getElementById('cpbtn'); if(!b2) return;
+      b2.className='cpbtn idle';
+      var activeTab2=(AP&&AP._activeTab)||'IMG';
+      var labels={IMG:'Image Prompt',EDIT:(AP&&AP.customTabs&&AP.customTabs.EDIT)||'Edit Prompt',VID:'Video Prompt'};
+      b2.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+        +'<rect x="9" y="9" width="13" height="13" rx="2"/>'
+        +'<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
+        +' Copy '+(labels[activeTab2]||'Completed Prompt');
+    },2000);
+  }).catch(function(){ showToast('Failed to copy — press Ctrl+C manually.'); });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PRESETS
+// ═══════════════════════════════════════════════════════════════════
+function loadPreset(i){
+  var p=AP, ex=p.examples[i]; if(!ex) return;
+  if(p.variables.length===2){
+    var pts=ex.label.split('/');
+    if(pts.length===2){ VV[p.variables[0]]=pts[0].trim(); VV[p.variables[1]]=pts[1].trim(); }
+    else { VV[p.variables[0]]=ex.label; }
+  } else if(p.variables.length>=1){ VV[p.variables[0]]=ex.label; }
+  document.querySelectorAll('#ml .vi').forEach(function(el,idx){ if(p.variables[idx]) el.value=VV[p.variables[idx]]||''; });
+  renderPrev();
+  showToast('Loaded: '+ex.label);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════════
+var _tt=null;
+function showToast(msg){
+  document.getElementById('toast-txt').textContent=msg;
+  var t=document.getElementById('toast');
+  t.classList.add('on');
+  clearTimeout(_tt);
+  _tt=setTimeout(function(){ t.classList.remove('on'); },2200);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// PEOPLE PROMPTS — People & Portraits folded into this dropdown, reachable from the ribbon
+// ═══════════════════════════════════════════════════════════════════
+function renderHP(){
+  var list = PROMPTS.filter(function(p){ return p.category === 'people'; });
+  var panel = document.getElementById('hpPanel');
+  if(!panel) return;
+  var byId = {};
+  list.forEach(function(p){ byId[p.id] = p; });
+  var placed = {};
+  var groups = PEOPLE_SUBCATS.map(function(sc){
+    var items = sc.ids.map(function(id){ return byId[id]; }).filter(Boolean);
+    items.forEach(function(p){ placed[p.id] = true; });
+    return { label: sc.label, items: items };
+  });
+  var leftover = list.filter(function(p){ return !placed[p.id]; });
+  if(leftover.length) groups.push({ label: 'Other', items: leftover });
+  panel.innerHTML = groups.map(function(grp){
+    if(!grp.items.length) return '';
+    return '<div class="hp-group-lbl">'+grp.label+'</div>'
+      + grp.items.map(function(p){
+          return '<div class="hp-item" data-pid="'+escH(p.id)+'">'
+            +'<span class="hp-title">'+escH(p.title)+'</span>'
+            +(p.personalPhoto ? '<svg class="hp-cam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>' : '')
+            +'</div>';
+        }).join('');
+  }).join('');
+}
+function toggleHP(e){
+  if(e) e.stopPropagation();
+  var panel = document.getElementById('hpPanel');
+  var btn = document.getElementById('hpBtn');
+  if(!panel || !btn) return;
+  var isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+}
+document.addEventListener('click', function(e){
+  var item = e.target.closest('.hp-item');
+  if(item){
+    openM(item.dataset.pid);
+    var panel = document.getElementById('hpPanel');
+    var btn = document.getElementById('hpBtn');
+    if(panel) panel.classList.remove('open');
+    if(btn) btn.classList.remove('open');
+    return;
+  }
+  var panel = document.getElementById('hpPanel');
+  var btn = document.getElementById('hpBtn');
+  if(!panel || !panel.classList.contains('open')) return;
+  if(e.target.closest('#hpPanel') || e.target.closest('#hpBtn')) return;
+  panel.classList.remove('open');
+  if(btn) btn.classList.remove('open');
+});
+
+function setF(type,val){ FT={type:type,val:val}; SQ=''; var sq=document.getElementById('sq'); if(sq) sq.value=''; renderCats(); renderCards(); }
+function doSearch(v){ SQ=v; renderCats(); renderCards(); }
+function clearAll(){ SQ=''; FT={type:'all',val:null}; var sq=document.getElementById('sq'); if(sq) sq.value=''; renderCats(); renderCards(); }
+
+// ═══════════════════════════════════════════════════════════════════
+// KEYBOARD + INIT
+// ═══════════════════════════════════════════════════════════════════
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeM(); });
+renderCats();
+renderCards();
+renderHP();
+</script>
+</body>
+</html>
