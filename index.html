@@ -105,8 +105,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:5
 .wt:hover{color:var(--ink);border-color:var(--a1)}
 .wt svg{width:13px;height:13px}
 /* card image strip — one large landscape image per row */
-.card-img{width:calc(100% + 40px);margin:-20px -20px 0 -20px;aspect-ratio:2.1/1;overflow:hidden;border-radius:0;position:relative;flex-shrink:0;background:var(--bg2)}
-.card-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.card-img{width:calc(100% + 40px);margin:-20px -20px 0 -20px;overflow:hidden;border-radius:0;position:relative;flex-shrink:0;background:var(--bg2)}
+.card-img img{width:100%;height:auto;max-height:80vh;object-fit:contain;display:block;margin:0 auto;transition:transform .5s cubic-bezier(.16,1,.3,1)}
 .card:hover .card-img img{transform:scale(1.025)}
 
 .c-date{font-family:var(--sans);color:var(--ink-4);font-size:11px}
